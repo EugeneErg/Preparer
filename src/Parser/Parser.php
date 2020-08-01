@@ -58,14 +58,6 @@ class Parser
                     foreach ($matches as $contextMatch) {
                         $items[] = $this->createItem($contextMatch, $this->contextTemplateClass);
                     }
-
-                    $items[] = $this->createItem(
-                        [[],[
-                            self::MATCH_STRING => substr($query, $position, $missed),
-                            self::MATCH_POSITION => $position
-                        ]],
-                        ContextTemplate::class
-                    );
                 }
 
                 $items[] = $this->createItem($match, $class);
