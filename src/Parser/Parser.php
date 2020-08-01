@@ -1,8 +1,5 @@
 <?php namespace EugeneErg\Preparer\Parser;
 
-use ReflectionException;
-use ReflectionClass;
-
 /**
  * Class Parser
  * @package EugeneErg\Preparer
@@ -100,13 +97,11 @@ class Parser
      * @param array $match
      * @param string $itemClass
      * @return AbstractTemplate
-     * @throws ReflectionException
      */
     private function createItem(array $match, string $itemClass): AbstractTemplate
     {
         unset($match[0]);
 
-        return (new ReflectionClass($itemClass))
-            ->newInstanceArgs(array_column($match, self::MATCH_STRING));
+        return new $itemClass(...array_column($match, self::MATCH_STRING));
     }
 }
