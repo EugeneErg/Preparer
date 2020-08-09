@@ -10,7 +10,7 @@ use EugeneErg\Preparer\Container;
 abstract class AbstractRecord
 {
     /**
-     * @var array
+     * @var self[]
      */
     private $path = [];
 
@@ -44,19 +44,7 @@ abstract class AbstractRecord
      */
     public function __construct()
     {
-        $this->container = new Container(
-            function($action) {
-                return $this->createChildren($action)
-                    ->getContainer();
-            },
-            function() {
-                if (!isset($this->string)) {
-                    $this->string = $this->getStringValue();
-                }
-
-                return $this->string;
-            }
-        );
+        $this->container = $this->createContainer();
     }
 
     /**
@@ -95,6 +83,22 @@ abstract class AbstractRecord
     }
 
     /**
+     * @return AbstractAction[]
+     */
+    public function getActions(): array
+    {
+        $actions = [];
+
+        foreach ($this->path as $parent) {
+            $actions[] = $parent->getAction();
+        }
+
+        $actions[] = $this->getAction();
+
+        return $actions;
+    }
+
+    /**
      * @return AbstractAction
      */
     public function getAction(): AbstractAction
@@ -103,18 +107,36 @@ abstract class AbstractRecord
     }
 
     /**
-     * Rules constructor.
-     * @param AbstractAction $action
-     * @return $this
+     * @return Container
      */
-    private function createChildren(AbstractAction $action): self
+    protected function createContainer(): Container
+    {
+        return new Container(
+            function($action) {
+                return $this->getChildContainer($action);
+            },
+            function() {
+                if (!isset($this->string)) {
+                    $this->string = $this->getStringValue();
+                }
+
+                return $this->string;
+            }
+        );
+    }
+
+    /**
+     * @param AbstractAction $action
+     * @return Container
+     */
+    protected function getChildContainer(AbstractAction $action): Container
     {
         $this->children[] = $result = $this->createByAction($action);
         $result->path = $this->path;
         $result->path[] = [$this];
         $result->action = $action;
 
-        return $result;
+        return $result->getContainer();
     }
 
     /**

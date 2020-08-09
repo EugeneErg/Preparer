@@ -1,32 +1,45 @@
 <?php namespace EugeneErg\Preparer\Parser;
 
+use ReflectionMethod;
+
 /**
  * Class AbstractTemplate
  * @package EugeneErg\Preparer\Parser
  */
 abstract class AbstractTemplate
 {
-    const TEMPLATE = '.*';
+    public const TEMPLATE = '(.*)';
 
     /**
-     * @var string
+     * @var array
      */
-    private $value;
+    private $values = [];
 
     /**
      * AbstractTemplate constructor.
-     * @param string $value
      */
-    public function __construct(string $value)
+    public function __construct()
     {
-        $this->value = $value;
+        $arguments = func_get_args();
+        $parameters = (new ReflectionMethod($this, '__construct'))->getParameters();
+
+        foreach ($parameters as $number => $parameter) {
+            if (array_key_exists($number, $arguments)) {
+                $this->values[$parameter->getName()] = $arguments[$number];
+            } elseif ($parameter->isOptional() && !$parameter->isVariadic()) {
+                $this->values[$parameter->getName()] = $parameter->getDefaultValue();
+            } else {
+                break;
+            }
+        }
     }
 
     /**
-     * @return string
+     * @param string $name
+     * @return mixed
      */
-    public function __toString(): string
+    public function __get(string $name)
     {
-        return $this->value;
+        return $this->values[$name];
     }
 }

@@ -1,5 +1,7 @@
 <?php namespace EugeneErg\Preparer\Parser;
 
+use EugeneErg\Preparer\ClassCreatorService;
+
 /**
  * Class Parser
  * @package EugeneErg\Preparer
@@ -20,17 +22,23 @@ class Parser
     private $contextTemplateClass;
 
     /**
+     * @var string
+     */
+    private $contextTemplatePattern;
+
+    /**
      * Parser constructor.
-     * @param AbstractTemplate[]|string[] $templates
+     * @param string[] $templates
      * @param string $contextTemplateClass
      */
     public function __construct(array $templates, string $contextTemplateClass = ContextTemplate::class)
     {
-        foreach ($templates as $itemClass) {
-            $this->patterns[$this->quote($itemClass::TEMPLATE)] = $itemClass;
+        foreach ($templates as $pattern => $itemClass) {
+            $this->patterns[$this->quote($pattern)] = $itemClass;
         }
 
         $this->contextTemplateClass = $contextTemplateClass;
+        $this->contextTemplatePattern = $this->quote($contextTemplateClass::TEMPLATE);
     }
 
     /**
@@ -49,7 +57,7 @@ class Parser
 
                 if ($missed !== 0) {
                     preg_match_all(
-                        $this->quote(($this->contextTemplateClass)::TEMPLATE),
+                        $this->contextTemplatePattern,
                         substr($query, $position, $missed),
                         $matches,
                         PREG_OFFSET_CAPTURE | PREG_UNMATCHED_AS_NULL
@@ -87,12 +95,14 @@ class Parser
 
     /**
      * @param array $match
-     * @param string $itemClass
+     * @param AbstractTemplate|string $itemClass
      * @return AbstractTemplate
      */
     private function createItem(array $match, string $itemClass): AbstractTemplate
     {
         unset($match[0]);
+
+        ClassCreatorService::instance('eugene.preparer');
 
         return new $itemClass(...array_column($match, self::MATCH_STRING));
     }
