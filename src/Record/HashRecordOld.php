@@ -6,10 +6,10 @@ use EugeneErg\Preparer\Container;
 use EugeneErg\Preparer\Hasher;
 
 /**
- * Class HashRecord
- * @package EugeneErg\Preparer\Record
+ * Class HashRecordOld
+ * @package EugeneErg\Preparer\RecordOld
  */
-class HashRecord extends AbstractRecord
+class HashRecordOld extends OldAbstractRecord
 {
     /**
      * @var string;

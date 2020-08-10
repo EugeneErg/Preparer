@@ -7,34 +7,19 @@ use ReflectionException;
 use ReflectionFunction;
 use ReflectionParameter;
 use function is_string;
-use function Sodium\compare;
+use function is_array;
 
 final class ClassCreatorService
 {
     /**
      * @var array
      */
-    private $generators = [];
-
-    /**
-     * @var array
-     */
     private $converters = [];
 
     /**
-     * @var Closure[][]
+     * @var Branch[]
      */
-    private $generatorsByNameSpace = [];
-
-    /**
-     * @var Closure[][][]
-     */
-    private $convertersByNameSpace = [];
-
-    /**
-     * @var array
-     */
-    private $indexes = [];
+    private $nameSpaceTree = [];
 
     /**
      * @var Object[][]
@@ -118,8 +103,6 @@ final class ClassCreatorService
                 $constructor->getName()
             )
             : [];
-
-
         $index = ValueIndexService::instance()->getIndex(...$parameters);
 
         if (!isset($this->classes[$className][$index])) {
@@ -182,7 +165,7 @@ final class ClassCreatorService
     }
 
     /**
-     * @param $value
+     * @param mixed $value
      * @param string $type
      * @param string $class
      * @param string $method
@@ -194,40 +177,54 @@ final class ClassCreatorService
     {
         $valueType = is_object($value) ? get_class($value) : gettype($value);
 
-        if ($valueType === $type) {
+        if ($valueType === $type || is_subclass_of($valueType, $type)) {
             return $value;
         }
 
-        $converter = $this->getPriorityConverter($type, $class, $method, $parameter, $valueType);
+        $converter = $this->getPriorityConverter($type, $class, $method, $parameter, $valueType)
+            ?? $this->converterByNameSpace($value, $type, $class);
 
         if ($converter === null) {
-            return $this->convertByNameSpace($value, $type, $class, $method, $parameter);
+            if (class_exists($type) && $value === null || is_array($value)) {
+                return $this->createSingle($type, (array) $value);
+            }
+
+            throw new Exception('can\'t convert to type: ' . $type);
         }
 
         $valueIndex = ValueIndexService::instance()->getIndex($value);
 
         if (!isset($converter->values[$valueIndex])) {
             $method = $converter->method;
-            $converter->values[$valueIndex] = $method($value, $class, $method, $parameter);
+            $converter->values[$valueIndex] = $value === null ? $method() : $method($value);
         }
 
         return $converter->values[$valueIndex];
     }
 
+    /**
+     * @param string $type
+     * @param string $class
+     * @param string $method
+     * @param string $parameter
+     * @param string $valueType
+     * @return object|null
+     * @throws ReflectionException
+     */
     private function getPriorityConverter(
         string $type,
         string $class,
         string $method,
         string $parameter,
-        string $valueType = null
+        string $valueType
     ): ?object {
-        if (!isset($this->classes[$type])) {
+        if (!isset($this->converters[$type])) {
             return null;
         }
 
         $classes = [];
 
-        foreach ($this->classes[$type] as $className => $classB) {
+        foreach ($this->converters[$type] as $className => $classB) {
             if (!isset($classB->converters[$valueType])) {
                 continue;
             }
@@ -275,64 +272,35 @@ final class ClassCreatorService
     }
 
     /**
-     * @param string $type
-     * @param string $class
-     * @param string $method
-     * @param string $parameter
-     * @throws Exception
-     * @return mixed
-     */
-    private function createDefaultValue(string $type, string $class, string $method, string $parameter)
-    {
-        $generator = $this->getPriorityConverter($type, $class, $method, $parameter);
-
-        if ($generator === null) {
-            return $this->createDefaultValueByNameSpace($type, $class, $method, $parameter);
-        }
-
-        if (!property_exists($generator, 'value')) {
-            $method = $generator->method;
-            $generator->value = $method($class, $method, $parameter);
-        }
-
-        return $generator->value;
-    }
-
-    /**
      * @param $value
      * @param string $type
      * @param string $class
-     * @param string $method
-     * @param string $parameter
-     * @return mixed
+     * @return object|null
      */
-    private function convertByNameSpace($value, string $type, string $class, string $method, string $parameter)
+    private function converterByNameSpace($value, string $type, string $class): ?object
     {
+        if (!isset($this->nameSpaceTree[$type])) {
+            return null;
+        }
+
         $valueType = is_object($value) ? get_class($value) : gettype($value);
+        $current = $this->nameSpaceTree[$type];
+        $result = $current->getValue()->converters[$valueType] ?? null;
         $routes = explode('\\', $class);
 
-        for ($i = 0; $i < count($routes); $i++) {
+        for ($i = 0; $i < count($routes) - 1; $i++) {
+            $route = $routes[$i];
 
+            if (!$current->hasChild($route)) {
+                return $result;
+            }
+
+            if (isset($current->getValue()->converters[$valueType])) {
+                $result = $current->getValue()->converters[$valueType];
+            }
         }
 
-
-        throw new Exception('can\'t convert to type: ' . $type);
-    }
-
-    /**
-     * @param string $type
-     * @param string $class
-     * @param string $method
-     * @param string $parameter
-     * @return mixed
-     */
-    private function createDefaultValueByNameSpace(string $type, string $class, string $method, string $parameter)
-    {
-        if (class_exists($type)) {
-            return $this->createSingle($type);
-        }
-
-        throw new Exception('need variable type: ' . $type);
+        return $result;
     }
 
     /**
@@ -361,7 +329,8 @@ final class ClassCreatorService
                     if ($parameter->allowsNull() || !$parameter->hasType()) {
                         $result[] = $value;
                     } elseif ($parameter->hasType()) {
-                        $result[] = $this->createDefaultValue(
+                        $result[] = $this->convert(
+                            null,
                             $parameter->getType()->getName(),
                             $className,
                             $methodName,
@@ -405,55 +374,6 @@ final class ClassCreatorService
 
     /**
      * @param callable $callback
-     * @param string|null $nameSpace
-     * @throws ReflectionException
-     */
-    public function addGenerator(
-        callable $callback,
-        string $nameSpace = null
-    ): void {
-        $function = $this->getReflectionByCallable($callback);
-        $type = $function->getReturnType()->getName();
-        $current = &$this->defaultGeneratorsByNameSpace[$type];
-        $routes = $nameSpace === null ? [$nameSpace] : explode('\\', $nameSpace);
-
-        foreach ($routes as $route) {
-            if (!isset($current)) {
-                $current = (object)[
-                    'children' => [],
-                ];
-            }
-
-            if ($nameSpace !== null) {
-                $current = &$current[$route]->children[$route];
-            }
-        }
-
-        $current->callback = $function->getClosure();
-    }
-
-    /**
-     * @param callable $callback
-     * @param string $class
-     * @param string|null $method
-     * @param string|null $parameter
-     * @throws ReflectionException
-     */
-    public function addGeneratorWithClass(
-        callable $callback,
-        string $class,
-        string $method = null,
-        string $parameter = null
-    ): void {
-        $function = $this->getReflectionByCallable($callback);
-        $type = $function->getReturnType()->getName();
-        $this->classes[$type][$class][null][$method][$parameter] = (object) [
-            'method' => $function->getClosure(),
-        ];
-    }
-
-    /**
-     * @param callable $callback
      * @param string|null $class
      * @param string|null $method
      * @param string|null $parameter
@@ -466,9 +386,17 @@ final class ClassCreatorService
         string $parameter = null
     ): void {
         $function = $this->getReflectionByCallable($callback);
-        $typeTo = $function->getReturnType()->getName();
-        $typeFrom = $function->getParameters()[0]->getType()->getName();
-        $this->converters[$typeFrom][$typeTo][$class][$method][$parameter] = (object) [
+        $type = $function->getReturnType()->getName();
+        $parameters = $function->getParameters();
+        $valueType = count($parameters) ? $function->getParameters()[0]->getType()->getName() : gettype(null);
+
+        if (!isset($this->classes[$type][$class])) {
+            $this->converters[$type][$class] = (object) [
+                'converters' => [],
+            ];
+        }
+
+        $this->converters[$type][$class]->convertors[$valueType][$method][$parameter] = (object) [
             'method' => $function->getClosure(),
             'values' => [],
         ];
@@ -485,23 +413,68 @@ final class ClassCreatorService
     ): void {
         $function = $this->getReflectionByCallable($callback);
         $typeTo = $function->getReturnType()->getName();
-        $typeFrom = $function->getParameters()[0]->getType()->getName();
-        $current = &$this->convertersByNameSpace[$typeFrom][$typeTo];
-        $routes = $nameSpace === null ? [$nameSpace] : explode('\\', $nameSpace);
+        $parameters = $function->getParameters();
+        $typeFrom = count($parameters) ? $function->getParameters()[0]->getType()->getName() : gettype(null);
 
-        foreach ($routes as $route) {
-            if (!isset($current)) {
-                $current = (object)[
-                    'children' => [],
-                ];
-            }
+        if (!isset($this->nameSpaceTree[$typeTo])) {
+            $this->nameSpaceTree[$typeTo] = new Branch((object) [
+                'converters' => [],
+            ]);
+        }
 
-            if ($nameSpace !== null) {
-                $current = &$current[$route]->children[$route];
+        $current = $this->nameSpaceTree[$typeTo];
+
+        if ($nameSpace !== null) {
+            $routes = explode('\\', $nameSpace);
+
+            foreach ($routes as $route) {
+                if (!$current->hasChild($route)) {
+                    $current->addChild(new Branch((object) [
+                        'converters' => [],
+                    ]), $route);
+                }
+
+                $current = $current->getChild($route);
             }
         }
 
-        $current->callback = $function->getClosure();
+        $current->getValue()->converters[$typeFrom] = (object) [
+            'method' => $function->getClosure(),
+            'values' => [],
+        ];
+    }
+
+    /**
+     * @param string $interface
+     * @param string $class
+     * @param string|null $nameSpace
+     * @throws ReflectionException
+     */
+    public function addBind(string $interface, string $class, string $nameSpace = null): void
+    {
+        $this->addConverter(eval("return function(): $interface {
+            return \$this->createSingle('$class');
+        };"), $nameSpace);
+    }
+
+    /**
+     * @param string $interface
+     * @param string $class
+     * @param string $contextClass
+     * @param string|null $method
+     * @param string|null $parameter
+     * @throws ReflectionException
+     */
+    public function addBindWithClass(
+        string $interface,
+        string $class,
+        string $contextClass,
+        string $method = null,
+        string $parameter = null
+    ): void {
+        $this->addConverterWithClass(eval("return function(): $interface {
+            return \$this->createSingle('$class');
+        };"), $contextClass, $method, $parameter);
     }
 
     /**
@@ -601,10 +574,10 @@ class qwe {
     }
 }
 
-ClassCreatorService::instance('test')->addConverter(function(string $value): \DateTimeImmutable {
+ClassCreatorService::instance()->addConverter(function(string $value): \DateTimeImmutable {
     return new \DateTimeImmutable($value);
 });
 
-var_dump(ClassCreatorService::instance('test')->createSingle(qwe::class, ['val' => 'test', 'date' => '2020-03-21']));
-var_dump(ClassCreatorService::instance('test')->createSingle(qwe::class, [1 => 'thfg']));
+var_dump(ClassCreatorService::instance()->createSingle(qwe::class, ['val' => 'test', 'date' => '2020-03-21']));
+var_dump(ClassCreatorService::instance()->createSingle(qwe::class, [1 => 'thfg']));
 //var_dump($q);

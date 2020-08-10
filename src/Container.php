@@ -3,7 +3,6 @@
 use EugeneErg\Preparer\Action;
 use Closure;
 
-
 /**
  * Class Container
  * @package EugeneErg\Preparer
@@ -16,39 +15,25 @@ class Container  implements \ArrayAccess
     private $toString;
 
     /**
-     * @var self[]
-     */
-    private $properties = [];
-
-    /**
-     * @var self[]
-     */
-    private $methods = [];
-
-    /**
-     * @var self[]
-     */
-    private $offsets = [];
-
-    /**
      * @var Closure|null
      */
-    private $callback;
+    private $getNext;
 
     /**
-     * @var array
+     * @var ClassCreatorService
      */
-    private $values = [];
+    private $classCreatorService;
 
     /**
      * Container constructor.
-     * @param Closure $callback
+     * @param Closure $getNext
      * @param Closure $toString
      */
-    public function __construct(Closure $callback, Closure $toString)
+    public function __construct(Closure $getNext, Closure $toString)
     {
         $this->toString = $toString;
-        $this->callback = $callback;
+        $this->getNext = $getNext;
+        $this->classCreatorService = ClassCreatorService::instance();
     }
 
     /**
@@ -69,12 +54,7 @@ class Container  implements \ArrayAccess
             return $this->__call('offsetGet', func_get_args());
         }
 
-        if (!isset($this->offsets[$name])) {
-            $callback = $this->callback;
-            $this->offsets[$name] = $callback(new Action\Offset($name));
-        }
-
-        return $this->offsets[$name];
+        return $this->callSingleAction(Action\Offset::class, [$name]);
     }
 
     /**
@@ -83,34 +63,7 @@ class Container  implements \ArrayAccess
      */
     public function __get(string $name): self
     {
-        if (!isset($this->properties[$name])) {
-            $callback = $this->callback;
-            $this->properties[$name] = $callback(new Action\Property($name));
-        }
-
-        return $this->properties[$name];
-    }
-
-    /**
-     * @param array $arguments
-     * @return string
-     */
-    private function getArgumentKey(array $arguments): string
-    {
-        $keys = [];
-
-        foreach ($arguments as $argument) {
-            $pos = array_search($argument, $this->values, true);
-
-            if ($pos === false) {
-                $pos = count($this->values);
-                $this->values[] = $argument;
-            }
-
-            $keys[] = $pos;
-        }
-
-        return implode('-', $keys);
+        return $this->callSingleAction(Action\Property::class, [$name]);
     }
 
     /**
@@ -120,14 +73,12 @@ class Container  implements \ArrayAccess
      */
     public function __call(string $name, array $arguments): self
     {
-        $key = $this->getArgumentKey($arguments);
+        return $this->callSingleAction(Action\Method::class, [$name, $arguments]);
+    }
 
-        if (!isset($this->methods[$name][$key])) {
-            $callback = $this->callback;
-            $this->methods[$name][$key] = $callback(new Action\Method($name, $arguments));
-        }
-
-        return $this->methods[$name][$key];
+    private function callSingleAction(string $class, array $arguments)
+    {
+        return ($this->getNext)($this->classCreatorService->createSingle($class, $arguments));
     }
 
     /**

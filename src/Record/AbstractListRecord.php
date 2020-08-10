@@ -3,22 +3,18 @@
 use EugeneErg\Preparer\Action\AbstractAction;
 use EugeneErg\Preparer\Container;
 
-/**
- * Class OnceHashRecord
- * @package EugeneErg\Preparer\Record
- */
-class OnceHashRecord extends HashRecord
+abstract class AbstractListRecord extends AbstractRecord
 {
-    private $actions = [];
-
     /**
      * @param AbstractAction $action
      * @return Container
      */
     protected function getChildContainer(AbstractAction $action): Container
     {
-        $this->actions[] = $action;
+        $actions = $this->getActions();
+        $actions[] = $action;
+        $this->setActions($actions);
 
-        return $this->createContainer();
+        return $this->getContainer();
     }
 }

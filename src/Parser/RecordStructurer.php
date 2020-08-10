@@ -1,6 +1,6 @@
 <?php namespace EugeneErg\Preparer\Parser;
 
-use EugeneErg\Preparer\Record\AbstractRecord;
+use EugeneErg\Preparer\Record\OldAbstractRecord;
 
 /**
  * Class RecordStructurer
@@ -13,7 +13,7 @@ class RecordStructurer
 
     }
 
-    public function structure(AbstractRecord $record)
+    public function structure(OldAbstractRecord $record)
     {
 
     }

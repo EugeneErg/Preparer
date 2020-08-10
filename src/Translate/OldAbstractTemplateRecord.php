@@ -1,12 +1,12 @@
 <?php namespace EugeneErg\Preparer\Translate;
 
-use EugeneErg\Preparer\Record\AbstractRecord;
+use EugeneErg\Preparer\Record\OldAbstractRecord;
 
 /**
- * Class AbstractTemplateRecord
+ * Class OldAbstractTemplateRecord
  * @package EugeneErg\Preparer\Translate
  */
-class AbstractTemplateRecord extends AbstractRecord
+class OldAbstractTemplateRecord extends OldAbstractRecord
 {
     const TEMPLATE = '.*';
 

@@ -3,56 +3,21 @@
 use EugeneErg\Preparer\Action\AbstractAction;
 use EugeneErg\Preparer\Container;
 
-/**
- * Class AbstractRecord
- * @package EugeneErg\Preparer\Record
- */
 abstract class AbstractRecord
 {
-    /**
-     * @var self[]
-     */
-    private $path = [];
-
     /**
      * @var Container
      */
     private $container;
 
     /**
-     * @var Container[]
+     * @var AbstractAction[]
      */
-    private $children = [];
+    private $actions = [];
 
-    /**
-     * @var AbstractAction
-     */
-    private $action;
-
-    /**
-     * @var string
-     */
-    private $string;
-
-    /**
-     * @return string
-     */
-    abstract protected function getStringValue(): string;
-
-    /**
-     * AbstractRecord constructor.
-     */
     public function __construct()
     {
         $this->container = $this->createContainer();
-    }
-
-    /**
-     * @return self
-     */
-    public function getRoot(): self
-    {
-        return $this->path[0] ?? $this;
     }
 
     /**
@@ -64,58 +29,15 @@ abstract class AbstractRecord
     }
 
     /**
-     * @param int $level
-     * @return self|null
-     */
-    public function getParent(int $level = 1): ?self
-    {
-        $level = $level <= 0 ? - $level : count($this->path) - $level;
-
-        return $this->path[$level] ?? null;
-    }
-
-    /**
-     * @return self[]
-     */
-    public function getPath(): array
-    {
-        return $this->path;
-    }
-
-    /**
-     * @return AbstractAction[]
-     */
-    public function getActions(): array
-    {
-        $actions = [];
-
-        foreach ($this->path as $parent) {
-            $actions[] = $parent->getAction();
-        }
-
-        $actions[] = $this->getAction();
-
-        return $actions;
-    }
-
-    /**
-     * @return AbstractAction
-     */
-    public function getAction(): AbstractAction
-    {
-        return $this->action;
-    }
-
-    /**
      * @return Container
      */
-    protected function createContainer(): Container
+    private function createContainer(): Container
     {
         return new Container(
-            function($action) {
+            function(AbstractAction $action): Container {
                 return $this->getChildContainer($action);
             },
-            function() {
+            function(): string {
                 if (!isset($this->string)) {
                     $this->string = $this->getStringValue();
                 }
@@ -126,25 +48,29 @@ abstract class AbstractRecord
     }
 
     /**
-     * @param AbstractAction $action
-     * @return Container
+     * @return AbstractAction[]
      */
-    protected function getChildContainer(AbstractAction $action): Container
+    public function getActions(): array
     {
-        $this->children[] = $result = $this->createByAction($action);
-        $result->path = $this->path;
-        $result->path[] = [$this];
-        $result->action = $action;
+        return $this->actions;
+    }
 
-        return $result->getContainer();
+    /**
+     * @param AbstractAction[] $actions
+     */
+    protected function setActions(array $actions): void
+    {
+        $this->actions = $actions;
     }
 
     /**
      * @param AbstractAction $action
-     * @return AbstractRecord
+     * @return Container
      */
-    protected function createByAction(AbstractAction $action): self
-    {
-        return new static();
-    }
+    abstract protected function getChildContainer(AbstractAction $action): Container;
+
+    /**
+     * @return string
+     */
+    abstract protected function getStringValue(): string;
 }

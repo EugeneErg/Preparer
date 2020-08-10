@@ -1,13 +1,13 @@
 <?php namespace EugeneErg\Preparer\Translate;
 
 use EugeneErg\Preparer\Hasher;
-use EugeneErg\Preparer\Record\AbstractTypeValueRecord;
+use EugeneErg\Preparer\Record\OldAbstractTypeValueRecord;
 
 /**
- * Class HashRecord
+ * Class HashRecordOld
  * @package EugeneErg\Preparer\Translate
  */
-abstract class AbstractTranslateRecord extends AbstractTypeValueRecord
+abstract class AbstractTranslateRecord extends OldAbstractTypeValueRecord
 {
     /**
      * @var self[]

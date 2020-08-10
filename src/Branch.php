@@ -1,6 +1,4 @@
-<?php
-
-namespace EugeneErg\Preparer;
+<?php namespace EugeneErg\Preparer;
 
 class Branch
 {
@@ -13,6 +11,20 @@ class Branch
      * @var Branch[]
      */
     private $children;
+
+    /**
+     * @var mixed
+     */
+    private $value;
+
+    /**
+     * Branch constructor.
+     * @param mixed $value
+     */
+    public function __construct($value)
+    {
+        $this->value = $value;
+    }
 
     /**
      * @param Branch $child
@@ -176,5 +188,13 @@ class Branch
         }
 
         return $level > 1 ? $this->getParent()->hasAncestor($level - 1) : true;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getValue()
+    {
+        return $this->value;
     }
 }

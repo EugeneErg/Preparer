@@ -4,9 +4,9 @@ use EugeneErg\Preparer\Action\AbstractAction;
 
 /**
  * Class ValueRecord
- * @package EugeneErg\Preparer\Record
+ * @package EugeneErg\Preparer\RecordOld
  */
-abstract class AbstractValueRecord extends AbstractRecord
+abstract class OldAbstractValueRecord extends OldAbstractRecord
 {
     /**
      * @var mixed
@@ -35,7 +35,7 @@ abstract class AbstractValueRecord extends AbstractRecord
     }
 
     /** @inheritDoc */
-    protected function createByAction(AbstractAction $action): AbstractRecord
+    protected function createByAction(AbstractAction $action): OldAbstractRecord
     {
         if ($this->hasNextValue($action)) {
             return new static($action->run($this->value));

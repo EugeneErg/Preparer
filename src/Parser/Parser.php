@@ -1,6 +1,7 @@
 <?php namespace EugeneErg\Preparer\Parser;
 
 use EugeneErg\Preparer\ClassCreatorService;
+use ReflectionException;
 
 /**
  * Class Parser
@@ -27,6 +28,11 @@ class Parser
     private $contextTemplatePattern;
 
     /**
+     * @var ClassCreatorService
+     */
+    private $classCreatorService;
+
+    /**
      * Parser constructor.
      * @param string[] $templates
      * @param string $contextTemplateClass
@@ -39,6 +45,7 @@ class Parser
 
         $this->contextTemplateClass = $contextTemplateClass;
         $this->contextTemplatePattern = $this->quote($contextTemplateClass::TEMPLATE);
+        $this->classCreatorService = ClassCreatorService::instance();
     }
 
     /**
@@ -95,15 +102,14 @@ class Parser
 
     /**
      * @param array $match
-     * @param AbstractTemplate|string $itemClass
+     * @param string $itemClass
      * @return AbstractTemplate
+     * @throws ReflectionException
      */
     private function createItem(array $match, string $itemClass): AbstractTemplate
     {
         unset($match[0]);
 
-        ClassCreatorService::instance('eugene.preparer');
-
-        return new $itemClass(...array_column($match, self::MATCH_STRING));
+        return $this->classCreatorService->createSingle($itemClass, array_column($match, self::MATCH_STRING));
     }
 }

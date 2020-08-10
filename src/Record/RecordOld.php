@@ -5,10 +5,10 @@ use EugeneErg\Preparer\Action\AbstractAction;
 use EugeneErg\Preparer\StringObject;
 
 /**
- * Class Record
- * @package EugeneErg\Preparer\Record
+ * Class RecordOld
+ * @package EugeneErg\Preparer\RecordOld
  */
-class Record extends AbstractRecord
+class RecordOld extends OldAbstractRecord
 {
     /**
      * @var Closure
@@ -26,7 +26,7 @@ class Record extends AbstractRecord
     private $options;
 
     /**
-     * Record constructor.
+     * RecordOld constructor.
      * @param Closure|null $toString
      * @param Closure|null $setOptions
      */
@@ -40,7 +40,7 @@ class Record extends AbstractRecord
     /**
      * @inheritDoc
      */
-    protected function createByAction(AbstractAction $action): AbstractRecord
+    protected function createByAction(AbstractAction $action): OldAbstractRecord
     {
         /** @var self $child */
         $child = parent::createByAction($action);

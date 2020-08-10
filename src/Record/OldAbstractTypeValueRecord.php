@@ -8,9 +8,9 @@ use Closure;
 
 /**
  * Class TypeValueRecord
- * @package EugeneErg\Preparer\Record
+ * @package EugeneErg\Preparer\RecordOld
  */
-abstract class AbstractTypeValueRecord extends AbstractValueRecord
+abstract class OldAbstractTypeValueRecord extends OldAbstractValueRecord
 {
     /**
      * @var string[]|string|Closure
@@ -28,7 +28,7 @@ abstract class AbstractTypeValueRecord extends AbstractValueRecord
     protected $offsets;
 
     /**
-     * AbstractTypeValueRecord constructor.
+     * OldAbstractTypeValueRecord constructor.
      * @inheritDoc
      */
     public function __construct($value)
@@ -38,7 +38,7 @@ abstract class AbstractTypeValueRecord extends AbstractValueRecord
 
     /**
      * @param AbstractAction $action
-     * @return AbstractTypeValueRecord|null
+     * @return OldAbstractTypeValueRecord|null
      */
     private function getRecordByAction(AbstractAction $action): ?self
     {
@@ -66,7 +66,7 @@ abstract class AbstractTypeValueRecord extends AbstractValueRecord
     /**
      * @inheritDoc
      */
-    protected function createByAction(AbstractAction $action): AbstractRecord
+    protected function createByAction(AbstractAction $action): OldAbstractRecord
     {
         if (!$this->hasValue()) {
             return parent::createByAction($action);
