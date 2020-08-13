@@ -1,10 +1,21 @@
 <?php namespace EugeneErg\Preparer\Record;
 
 use EugeneErg\Preparer\Action\AbstractAction;
+use EugeneErg\Preparer\Action\Method;
+use EugeneErg\Preparer\Action\Offset;
+use EugeneErg\Preparer\Action\Property;
+use EugeneErg\Preparer\ClassCreatorService;
 use EugeneErg\Preparer\Container;
+use ReflectionException;
 
 abstract class AbstractRecord
 {
+    protected const ACTIONS = [
+        Container::ACTION_OFFSET => Offset::class,
+        Container::ACTION_CALL => Method::class,
+        Container::ACTION_GET => Property::class,
+    ];
+
     /**
      * @var Container
      */
@@ -15,9 +26,15 @@ abstract class AbstractRecord
      */
     private $actions = [];
 
+    /**
+     * @var ClassCreatorService
+     */
+    private $classCreatorService;
+
     public function __construct()
     {
-        $this->container = $this->createContainer();
+        $this->container = new Container($this);
+        $this->classCreatorService = ClassCreatorService::instance();
     }
 
     /**
@@ -26,25 +43,6 @@ abstract class AbstractRecord
     public function getContainer(): Container
     {
         return $this->container;
-    }
-
-    /**
-     * @return Container
-     */
-    private function createContainer(): Container
-    {
-        return new Container(
-            function(AbstractAction $action): Container {
-                return $this->getChildContainer($action);
-            },
-            function(): string {
-                if (!isset($this->string)) {
-                    $this->string = $this->getStringValue();
-                }
-
-                return $this->string;
-            }
-        );
     }
 
     /**
@@ -72,5 +70,27 @@ abstract class AbstractRecord
     /**
      * @return string
      */
-    abstract protected function getStringValue(): string;
+    abstract public function getStringValue(): string;
+
+    /**
+     * @param string $actionType
+     * @param array $arguments
+     * @return Container
+     * @throws ReflectionException
+     */
+    public function getNext(string $actionType, array $arguments): Container
+    {
+        return $this->getChildContainer($this->createAction($actionType, $arguments));
+    }
+
+    /**
+     * @param string $actionType
+     * @param array $arguments
+     * @return AbstractAction
+     * @throws ReflectionException
+     */
+    protected function createAction(string $actionType, array $arguments): AbstractAction
+    {
+        return $this->classCreatorService->createSingle(self::ACTIONS[$actionType], $arguments);
+    }
 }

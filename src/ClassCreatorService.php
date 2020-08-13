@@ -1,6 +1,7 @@
 <?php namespace EugeneErg\Preparer;
 
 use Closure;
+use EugeneErg\Preparer\Exception\ConvertTypeException;
 use Exception;
 use ReflectionClass;
 use ReflectionException;
@@ -87,11 +88,11 @@ final class ClassCreatorService
     /**
      * @param string $className
      * @param array $arguments
-     * @return mixed
+     * @return object
      * @throws ReflectionException
      * @throws Exception
      */
-    public function createSingle(string $className, array $arguments = [])
+    public function createSingle(string $className, array $arguments = []): object
     {
         $class = new ReflectionClass($className);
         $constructor = $class->getConstructor();
@@ -121,10 +122,9 @@ final class ClassCreatorService
      */
     public function call(callable $function, array $arguments = [])
     {
-        $reflectionFunction = $this->getReflectionByCallable($function);
-
         list($class, $method) = $this->getClassMethodByCallable($function);
 
+        $reflectionFunction = $this->getReflectionByCallable($function);
         return $reflectionFunction->invokeArgs(
             $this->convertArgumentsAccordingToParameters(
                 $arguments,
@@ -144,11 +144,10 @@ final class ClassCreatorService
      */
     public function callSingle(callable $function, array $arguments = [])
     {
-        $functionIndex = $this->getIndexByCallable($function);
-        $reflectionFunction = $this->getReflectionByCallable($function);
-
         list($class, $method) = $this->getClassMethodByCallable($function);
 
+        $functionIndex = $this->getIndexByCallable($function);
+        $reflectionFunction = $this->getReflectionByCallable($function);
         $parameters = $this->convertArgumentsAccordingToParameters(
             $arguments,
             $reflectionFunction->getParameters(),
@@ -189,7 +188,7 @@ final class ClassCreatorService
                 return $this->createSingle($type, (array) $value);
             }
 
-            throw new Exception('can\'t convert to type: ' . $type);
+            throw new ConvertTypeException([$valueType, $type, $class, $method, $parameter, $valueType]);
         }
 
         $valueIndex = ValueIndexService::instance()->getIndex($value);
@@ -557,27 +556,3 @@ final class ClassCreatorService
         return implode('::', $function);
     }
 }
-
-class qwe2 {
-}
-
-class qwe {
-    private $qwe2;
-    private $val;
-    private $date;
-
-    function __construct(qwe2 $qwe2, string $val, \DateTimeImmutable $date)
-    {
-        $this->qwe2 = $qwe2;
-        $this->val = $val;
-        $this->date = $date;
-    }
-}
-
-ClassCreatorService::instance()->addConverter(function(string $value): \DateTimeImmutable {
-    return new \DateTimeImmutable($value);
-});
-
-var_dump(ClassCreatorService::instance()->createSingle(qwe::class, ['val' => 'test', 'date' => '2020-03-21']));
-var_dump(ClassCreatorService::instance()->createSingle(qwe::class, [1 => 'thfg']));
-//var_dump($q);

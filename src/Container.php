@@ -1,39 +1,26 @@
 <?php namespace EugeneErg\Preparer;
 
-use EugeneErg\Preparer\Action;
-use Closure;
+use ArrayAccess;
+use EugeneErg\Preparer\Record\AbstractRecord;
 
-/**
- * Class Container
- * @package EugeneErg\Preparer
- */
-class Container  implements \ArrayAccess
+class Container  implements ArrayAccess
 {
-    /**
-     * @var Closure
-     */
-    private $toString;
+    public const ACTION_GET = 'get';
+    public const ACTION_CALL = 'call';
+    public const ACTION_OFFSET = 'offset';
 
     /**
-     * @var Closure|null
+     * @var AbstractRecord
      */
-    private $getNext;
-
-    /**
-     * @var ClassCreatorService
-     */
-    private $classCreatorService;
+    private $record;
 
     /**
      * Container constructor.
-     * @param Closure $getNext
-     * @param Closure $toString
+     * @param AbstractRecord $record
      */
-    public function __construct(Closure $getNext, Closure $toString)
+    public function __construct(AbstractRecord $record)
     {
-        $this->toString = $toString;
-        $this->getNext = $getNext;
-        $this->classCreatorService = ClassCreatorService::instance();
+        $this->record = $record;
     }
 
     /**
@@ -41,7 +28,26 @@ class Container  implements \ArrayAccess
      */
     public function __toString(): string
     {
-        return ($this->toString)();
+        return $this->record->getStringValue();
+    }
+
+    /**
+     * @param string $name
+     * @return self
+     */
+    public function __get(string $name): self
+    {
+        return $this->record->getNext(self::ACTION_GET, [$name]);
+    }
+
+    /**
+     * @param $name
+     * @param array $arguments
+     * @return self
+     */
+    public function __call(string $name, array $arguments): self
+    {
+        return $this->record->getNext(self::ACTION_CALL, [$name, $arguments]);
     }
 
     /**
@@ -54,31 +60,7 @@ class Container  implements \ArrayAccess
             return $this->__call('offsetGet', func_get_args());
         }
 
-        return $this->callSingleAction(Action\Offset::class, [$name]);
-    }
-
-    /**
-     * @param string $name
-     * @return self
-     */
-    public function __get(string $name): self
-    {
-        return $this->callSingleAction(Action\Property::class, [$name]);
-    }
-
-    /**
-     * @param $name
-     * @param array $arguments
-     * @return self
-     */
-    public function __call(string $name, array $arguments): self
-    {
-        return $this->callSingleAction(Action\Method::class, [$name, $arguments]);
-    }
-
-    private function callSingleAction(string $class, array $arguments)
-    {
-        return ($this->getNext)($this->classCreatorService->createSingle($class, $arguments));
+        return $this->record->getNext(self::ACTION_OFFSET, [$name]);
     }
 
     /**

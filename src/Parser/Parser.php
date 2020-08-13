@@ -15,36 +15,28 @@ class Parser
     /**
      * @var string[]
      */
-    private $patterns;
-
-    /**
-     * @var string
-     */
-    private $contextTemplateClass;
-
-    /**
-     * @var string
-     */
-    private $contextTemplatePattern;
-
-    /**
-     * @var ClassCreatorService
-     */
-    private $classCreatorService;
+    private array $patterns;
+    private ?string $contextTemplateClass;
+    private ?string $contextTemplatePattern;
+    private ClassCreatorService $classCreatorService;
 
     /**
      * Parser constructor.
-     * @param string[] $templates
-     * @param string $contextTemplateClass
+     * @param string[]|AbstractTemplate[] $templates
+     * @param string|null $contextTemplateClass
      */
-    public function __construct(array $templates, string $contextTemplateClass = ContextTemplate::class)
+    public function __construct(array $templates, string $contextTemplateClass = null)
     {
-        foreach ($templates as $pattern => $itemClass) {
-            $this->patterns[$this->quote($pattern)] = $itemClass;
+        foreach ($templates as $itemClass) {
+            $this->addPattern($itemClass);
         }
 
         $this->contextTemplateClass = $contextTemplateClass;
-        $this->contextTemplatePattern = $this->quote($contextTemplateClass::TEMPLATE);
+
+        if ($contextTemplateClass !== null) {
+            $this->contextTemplatePattern = $this->quote($contextTemplateClass::TEMPLATE);
+        }
+
         $this->classCreatorService = ClassCreatorService::instance();
     }
 
@@ -54,41 +46,90 @@ class Parser
      */
     public function parse(string $query): array
     {
-        $callbacks = [];
-        $items = [];
         $position = 0;
+        $items = array_map(function(...$matches) use(&$position, $query) {
+            $items = [];
+            unset($matches[0]);
 
-        foreach ($this->patterns as $template => $class) {
-            $callbacks[$template] = function(array $match) use($class, &$items, &$position, $query) {
-                $missed = $match[0][self::MATCH_POSITION] - $position;
+            foreach ($this->patterns as $class => $pattern) {
+                $match = array_splice($matches, 0, $pattern->count);
 
-                if ($missed !== 0) {
-                    preg_match_all(
-                        $this->contextTemplatePattern,
-                        substr($query, $position, $missed),
-                        $matches,
-                        PREG_OFFSET_CAPTURE | PREG_UNMATCHED_AS_NULL
-                    );
+                if ($match[0][self::MATCH_STRING] !== null) {
+                    $missed = $match[0][self::MATCH_POSITION] - $position;
 
-                    foreach ($matches as $contextMatch) {
-                        $items[] = $this->createItem($contextMatch, $this->contextTemplateClass);
+                    if ($missed !== 0) {
+                        $items = array_merge($items, $this->getContextItems($query, $position, $missed));
                     }
-                }
 
-                $items[] = $this->createItem($match, $class);
-                $position = $match[0][self::MATCH_POSITION] + strlen($match[0][self::MATCH_STRING]);
-            };
+                    $items[] = $this->createItem($match, $class);
+                    $position = $match[0][self::MATCH_POSITION] + strlen($match[0][self::MATCH_STRING]);
+                }
+            }
+
+            return $items;
+        }, ...$this->getMatches(
+            $query,
+            '(' . implode(')|(', array_column($this->patterns, 'template')) . ')'
+        ));
+
+        $missed = strlen($query) - $position;
+
+        if ($missed !== 0) {
+            $items[] = $this->getContextItems($query, $position, $missed);
         }
 
-        preg_replace_callback_array(
-            $callbacks,
+        return array_merge(...$items);
+    }
+
+    /**
+     * @param string $query
+     * @param int $position
+     * @param int $missed
+     * @return AbstractTemplate[]
+     */
+    private function getContextItems(string $query, int $position, int $missed): array
+    {
+        if ($this->contextTemplateClass === null) {
+            return [];
+        }
+
+        return array_map(function(array ...$match): AbstractTemplate {
+            return $this->createItem($match, $this->contextTemplateClass);
+        }, ...$this->getMatches(substr($query, $position, $missed), $this->contextTemplatePattern));
+    }
+
+    /**
+     * @param string $query
+     * @param string $template
+     * @return array
+     */
+    private function getMatches(string $query, string $template): array
+    {
+        preg_match_all(
+            "/$template/",
             $query,
-            -1,
-            $count,
+            $matches,
             PREG_OFFSET_CAPTURE | PREG_UNMATCHED_AS_NULL
         );
 
-        return $items;
+        return $matches;
+    }
+
+    /**
+     * @param string|AbstractTemplate $className
+     */
+    private function addPattern(string $className): void
+    {
+        $pattern = $this->quote($className::TEMPLATE);
+        preg_match_all(
+            "/$pattern/",
+            '',
+            $matches
+        );
+        $this->patterns[$className] = (object) [
+            'count' => count($matches),
+            'template' => $pattern,
+        ];
     }
 
     /**
@@ -97,7 +138,7 @@ class Parser
      */
     private function quote(string $template): string
     {
-        return '/' . str_replace('/', '\/', $template) . '/';
+        return str_replace('/', '\/', $template);
     }
 
     /**

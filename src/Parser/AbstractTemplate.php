@@ -8,7 +8,7 @@ use ReflectionMethod;
  */
 abstract class AbstractTemplate
 {
-    public const TEMPLATE = '(.*)';
+    public const TEMPLATE = '(.+)';
 
     /**
      * @var array
