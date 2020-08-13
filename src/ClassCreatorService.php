@@ -542,6 +542,7 @@ final class ClassCreatorService
     private function getIndexByCallable(callable $function): string
     {
         if (is_object($function)) {
+            /** @var object $function */
             return spl_object_hash($function);
         }
 
@@ -553,6 +554,7 @@ final class ClassCreatorService
             return spl_object_hash($function[0]) . '::' . $function[1];
         }
 
+        /** @var array $function */
         return implode('::', $function);
     }
 }
