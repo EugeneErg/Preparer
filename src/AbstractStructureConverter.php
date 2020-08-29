@@ -6,20 +6,26 @@ use ReflectionException;
 
 abstract class AbstractStructureConverter
 {
-    protected array $templates = [];
-    protected ?string $contextTemplate = null;
+    private array $templates;
+    private ?string $contextTemplate;
     private Parser $parser;
 
     /**
      * AbstractStructureConverter constructor.
+     * @param array $templates
+     * @param string|null $contextTemplate
      * @throws ReflectionException
      */
-    public function __construct()
+    public function __construct(array $templates, string $contextTemplate = null)
     {
-        $this->parser = ClassCreatorService::instance()->createSingle(Parser::class, [
+        $this->templates = $templates;
+        $this->contextTemplate = $contextTemplate;
+        /** @var Parser $parser */
+        $parser = ClassCreatorService::instance()->createSingle(Parser::class, [
             $this->templates,
             $this->contextTemplate
         ]);
+        $this->parser = $parser;
     }
 
     /**

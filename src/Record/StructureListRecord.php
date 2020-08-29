@@ -7,10 +7,15 @@ use EugeneErg\Preparer\Action\Record;
 use EugeneErg\Preparer\ClassCreatorService;
 use EugeneErg\Preparer\Container;
 use EugeneErg\Preparer\Hasher;
+use EugeneErg\Preparer\ToStringAsHash;
 use ReflectionException;
 
 class StructureListRecord extends AbstractListRecord
 {
+    use ToStringAsHash {
+        __toString as getStringValue;
+    }
+
     private const ACTION_RECORD = 'record';
 
     protected const ACTIONS = [
@@ -20,26 +25,15 @@ class StructureListRecord extends AbstractListRecord
         self::ACTION_RECORD => Record::class
     ];
 
-    /**
-     * @var ClassCreatorService
-     */
-    private $classCreateService;
-
-    /**
-     * @var Hasher
-     */
-    private $hasher;
-
-    /**
-     * @var string
-     */
-    private $hash;
+    private ClassCreatorService $classCreateService;
+    private Hasher $hasher;
 
     public function __construct()
     {
         $this->classCreateService = ClassCreatorService::instance();
-        $this->hasher = $this->classCreateService->createSingle(Hasher::class);
-        $this->hash = $this->hasher->getHash($this);
+        /** @var Hasher $hasher */
+        $hasher = $this->classCreateService->createSingle(Hasher::class);
+        $this->hasher = $hasher;
         parent::__construct();
     }
 
@@ -56,16 +50,14 @@ class StructureListRecord extends AbstractListRecord
         if ($actionType === Container::ACTION_GET
             && $this->hasher->hasObject($name)
         ) {
-            $actionType = self::ACTION_RECORD;
-            $arguments = [$this->hasher->getObject($name)];
+            $subRecord = $this->hasher->getObject($name);
+
+            if ($subRecord instanceof StructureListRecord) {
+                $actionType = self::ACTION_RECORD;
+                $arguments = [$subRecord];
+            }
         }
         
         return parent::getNext($actionType, $arguments);
-    }
-
-    /** @inheritDoc */
-    public function getStringValue(): string
-    {
-        return $this->hash;
     }
 }

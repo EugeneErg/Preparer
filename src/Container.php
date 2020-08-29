@@ -2,30 +2,22 @@
 
 use ArrayAccess;
 use EugeneErg\Preparer\Record\AbstractRecord;
+use EugeneErg\Preparer\Exception\InvalidActionException;
+use ReflectionException;
 
-class Container  implements ArrayAccess
+class Container implements ArrayAccess
 {
     public const ACTION_GET = 'get';
     public const ACTION_CALL = 'call';
     public const ACTION_OFFSET = 'offset';
 
-    /**
-     * @var AbstractRecord
-     */
-    private $record;
+    private AbstractRecord $record;
 
-    /**
-     * Container constructor.
-     * @param AbstractRecord $record
-     */
     public function __construct(AbstractRecord $record)
     {
         $this->record = $record;
     }
 
-    /**
-     * @return string
-     */
     public function __toString(): string
     {
         return $this->record->getStringValue();
@@ -33,7 +25,9 @@ class Container  implements ArrayAccess
 
     /**
      * @param string $name
-     * @return self
+     * @return $this
+     * @throws InvalidActionException
+     * @throws ReflectionException
      */
     public function __get(string $name): self
     {

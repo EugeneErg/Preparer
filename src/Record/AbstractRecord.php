@@ -6,6 +6,7 @@ use EugeneErg\Preparer\Action\Offset;
 use EugeneErg\Preparer\Action\Property;
 use EugeneErg\Preparer\ClassCreatorService;
 use EugeneErg\Preparer\Container;
+use EugeneErg\Preparer\Exception\InvalidActionException;
 use ReflectionException;
 
 abstract class AbstractRecord
@@ -16,24 +17,16 @@ abstract class AbstractRecord
         Container::ACTION_GET => Property::class,
     ];
 
-    /**
-     * @var Container
-     */
-    private $container;
-
+    private Container $container;
     /**
      * @var AbstractAction[]
      */
-    private $actions = [];
-
-    /**
-     * @var ClassCreatorService
-     */
-    private $classCreatorService;
+    private array $actions = [];
+    private ClassCreatorService $classCreatorService;
 
     public function __construct()
     {
-        $this->container = new Container($this);
+        $this->container = $this->createContainer();
         $this->classCreatorService = ClassCreatorService::instance();
     }
 
@@ -61,26 +54,35 @@ abstract class AbstractRecord
         $this->actions = $actions;
     }
 
-    /**
-     * @param AbstractAction $action
-     * @return Container
-     */
     abstract protected function getChildContainer(AbstractAction $action): Container;
-
-    /**
-     * @return string
-     */
     abstract public function getStringValue(): string;
 
     /**
      * @param string $actionType
      * @param array $arguments
      * @return Container
+     * @throws InvalidActionException
      * @throws ReflectionException
      */
     public function getNext(string $actionType, array $arguments): Container
     {
+        if (!$this->validate($actionType, $arguments)) {
+            throw new InvalidActionException([
+                $actionType,
+                $arguments
+            ]);
+        }
+
         return $this->getChildContainer($this->createAction($actionType, $arguments));
+    }
+
+    private function validate(string $actionType, array $arguments): bool
+    {
+        if (method_exists($this, "{$actionType}Validate")) {
+            return $this->{"{$actionType}Validate"}(...$arguments);
+        }
+
+        return isset(static::ACTIONS[$actionType]);
     }
 
     /**
@@ -91,6 +93,14 @@ abstract class AbstractRecord
      */
     protected function createAction(string $actionType, array $arguments): AbstractAction
     {
-        return $this->classCreatorService->createSingle(self::ACTIONS[$actionType], $arguments);
+        /** @var AbstractAction $result */
+        $result = $this->classCreatorService->createSingle(self::ACTIONS[$actionType], $arguments);
+
+        return $result;
+    }
+
+    protected function createContainer(): Container
+    {
+        return new Container($this);
     }
 }
