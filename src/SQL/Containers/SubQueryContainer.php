@@ -3,12 +3,15 @@
 use EugeneErg\Preparer\Container;
 use EugeneErg\Preparer\SQL\AbstractQuery;
 use EugeneErg\Preparer\SQL\Field;
+use EugeneErg\Preparer\SQL\Query\SubQuery;
+use EugeneErg\Preparer\SQL\Table;
+use EugeneErg\Preparer\SQL\Values;
 
 class SubQueryContainer extends Container
 {
     /**
      * @param string|null $type
-     * @param string|AbstractQuery|SubQueryContainer $query
+     * @param string|Table|Values|SubQueryContainer $query
      * @param int|null $limit
      * @param int $offset
      * @param bool $distinct

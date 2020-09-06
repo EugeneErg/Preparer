@@ -2,6 +2,7 @@
 
 use ArrayAccess;
 use EugeneErg\Preparer\Exception\InvalidActionException;
+use EugeneErg\Preparer\SQL\Containers\FunctionContainer;
 use EugeneErg\Preparer\SQL\Records\ValueFunctionRecord;
 
 /**
@@ -24,6 +25,9 @@ class Value implements ArrayAccess
         $this->valueRecord = new ValueFunctionRecord($this);
     }
 
+    /**
+     * @return mixed
+     */
     public function getObject()
     {
         return $this->object;
@@ -41,7 +45,10 @@ class Value implements ArrayAccess
 
     public function offsetGet($name): FunctionContainer
     {
-        return $this->valueRecord->getContainer()[$name];
+        /** @var FunctionContainer $result */
+        $result = $this->valueRecord->getContainer()[$name];
+
+        return $result;
     }
 
     /**

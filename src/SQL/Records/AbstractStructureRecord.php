@@ -18,6 +18,11 @@ abstract class AbstractStructureRecord extends AbstractTreeRecord
         parent::__construct();
     }
 
+    public function getQuery(): AbstractQuery
+    {
+        return $this->query;
+    }
+
     protected function createRecord(): AbstractStructureRecord
     {
         return new static($this->query);
