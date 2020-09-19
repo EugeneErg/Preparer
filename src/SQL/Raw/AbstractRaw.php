@@ -1,27 +1,51 @@
-<?php namespace EugeneErg\Preparer\SQL;
+<?php namespace EugeneErg\Preparer\SQL\Raw;
 
-use EugeneErg\Preparer\SQL\Query\MainQuery;
-use EugeneErg\Preparer\SQL\Query\SubQuery;
+use EugeneErg\Preparer\Container;
+use EugeneErg\Preparer\Parser\AbstractTemplate;
+use EugeneErg\Preparer\Parser\Parser;
 
 abstract class AbstractRaw
 {
-    public function _construct(string $query)
+    /**
+     * @var AbstractTemplate[]
+     */
+    private array $templates;
+
+    public function __construct(string $query, array $templates = [], string $contextTemplate = null)
     {
-        $this->query = $query;
+        $this->templates = (new Parser($templates, $contextTemplate))->parse($query);
     }
 
-    public function toSubQuery(): SubQuery
+    public function toSubQuery(): Container
     {
-
+        return $this->templatesToSubQuery($this->templates);
     }
 
-    public function toQuery(): MainQuery
+    public function toQuery(): Container
     {
-
+        return $this->templatesToQuery($this->templates);
     }
 
-    public function toValue()
+    public function toValue(): Container
     {
-
+        return $this->templatesToValue($this->templates);
     }
+
+    /**
+     * @param AbstractTemplate[] $templates
+     * @return Container
+     */
+    abstract protected function templatesToSubQuery(array $templates): Container;
+
+    /**
+     * @param AbstractTemplate[] $templates
+     * @return Container
+     */
+    abstract protected function templatesToQuery(array $templates): Container;
+
+    /**
+     * @param AbstractTemplate[] $templates
+     * @return Container
+     */
+    abstract protected function templatesToValue(array $templates): Container;
 }

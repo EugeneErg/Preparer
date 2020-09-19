@@ -1,7 +1,7 @@
 <?php namespace EugeneErg\Preparer;
 
 use EugeneErg\Preparer\Parser\AbstractTemplate;
-use EugeneErg\Preparer\Parser\MainTemplate;
+use EugeneErg\Preparer\Parser\MainAbstractTemplate;
 
 /**
  * Class AbstractPreparer
@@ -20,10 +20,10 @@ abstract class AbstractPreparer
     private $parser;
 
     /**
-     * @param MainTemplate $structure
+     * @param MainAbstractTemplate $structure
      * @return AbstractTemplate
      */
-    abstract public function translate(MainTemplate $structure): AbstractTemplate;
+    abstract public function translate(MainAbstractTemplate $structure): AbstractTemplate;
 
     /**
      * AbstractPreparer constructor.

@@ -2,7 +2,7 @@
 
 use Closure;
 use EugeneErg\Preparer\Parser\AbstractTemplate;
-use EugeneErg\Preparer\Parser\MainTemplate;
+use EugeneErg\Preparer\Parser\MainAbstractTemplate;
 
 /**
  * Class Preparer
@@ -28,10 +28,10 @@ class Preparer extends AbstractPreparer
     }
 
     /**
-     * @param MainTemplate $structure
+     * @param MainAbstractTemplate $structure
      * @return AbstractTemplate
      */
-    public function translate(MainTemplate $structure): AbstractTemplate
+    public function translate(MainAbstractTemplate $structure): AbstractTemplate
     {
         return ($this->callback)($structure);
     }

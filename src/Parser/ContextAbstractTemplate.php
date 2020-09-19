@@ -1,14 +1,14 @@
 <?php namespace EugeneErg\Preparer\Parser;
 
 /**
- * Class ContextTemplate
+ * Class ContextAbstractTemplate
  * @package EugeneErg\Preparer\Parser
  * @property-read string $value
  */
-class ContextTemplate extends AbstractTemplate
+class ContextAbstractTemplate extends AbstractTemplate
 {
     /**
-     * ContextTemplate constructor.
+     * ContextAbstractTemplate constructor.
      * @param string $value
      */
     public function __construct(string $value)

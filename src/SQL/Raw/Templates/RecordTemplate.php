@@ -1,10 +1,9 @@
-<?php
+<?php namespace EugeneErg\Preparer\SQL\Raw\Templates;
 
+use EugeneErg\Preparer\Parser\AbstractTemplate;
 
-namespace EugeneErg\Preparer\SQL\Raw\Templates;
-
-
-class RecordTemplate
+class RecordTemplate extends AbstractTemplate
 {
+    public const TEMPLATE = '\\$[0-9a-z]{32}\\$';
 
 }

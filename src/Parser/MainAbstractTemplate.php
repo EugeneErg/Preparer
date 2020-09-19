@@ -1,10 +1,10 @@
 <?php namespace EugeneErg\Preparer\Parser;
 
 /**
- * Class MainTemplate
+ * Class MainAbstractTemplate
  * @package EugeneErg\Preparer\Parser
  */
-class MainTemplate extends AbstractTemplate implements StructureInterface
+class MainAbstractTemplate extends AbstractTemplate implements StructureInterface
 {
     /**
      * @var AbstractTemplate[]
@@ -17,7 +17,7 @@ class MainTemplate extends AbstractTemplate implements StructureInterface
     private $value;
 
     /**
-     * MainTemplate constructor.
+     * MainAbstractTemplate constructor.
      * @param AbstractTemplate[] $structure
      */
     public function __construct(array $structure)

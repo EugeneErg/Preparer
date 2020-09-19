@@ -1,7 +1,6 @@
 <?php namespace EugeneErg\Preparer\Parser;
 
 use EugeneErg\Preparer\ClassCreatorService;
-use ReflectionException;
 
 /**
  * Class Parser
@@ -51,8 +50,8 @@ class Parser
             $items = [];
             unset($matches[0]);
 
-            foreach ($this->patterns as $class => $pattern) {
-                $match = array_splice($matches, 0, $pattern->count);
+            foreach ($this->patterns as $pattern => $option) {
+                $match = array_splice($matches, 0, $option->count);
 
                 if ($match[0][self::MATCH_STRING] !== null) {
                     $missed = $match[0][self::MATCH_POSITION] - $position;
@@ -61,7 +60,7 @@ class Parser
                         $items = array_merge($items, $this->getContextItems($query, $position, $missed));
                     }
 
-                    $items[] = $this->createItem($match, $class);
+                    $items[] = $this->createItem($match,  $option->class);
                     $position = $match[0][self::MATCH_POSITION] + strlen($match[0][self::MATCH_STRING]);
                 }
             }
@@ -69,7 +68,7 @@ class Parser
             return $items;
         }, ...$this->getMatches(
             $query,
-            '(' . implode(')|(', array_column($this->patterns, 'template')) . ')'
+            '(' . implode(')|(', array_keys($this->patterns)) . ')'
         ));
 
         $missed = strlen($query) - $position;
@@ -126,9 +125,9 @@ class Parser
             '',
             $matches
         );
-        $this->patterns[$className] = (object) [
+        $this->patterns[$pattern] = (object) [
             'count' => count($matches),
-            'template' => $pattern,
+            'class' => $className,
         ];
     }
 
@@ -145,12 +144,9 @@ class Parser
      * @param array $match
      * @param string $itemClass
      * @return AbstractTemplate
-     * @throws ReflectionException
      */
     private function createItem(array $match, string $itemClass): AbstractTemplate
     {
-        unset($match[0]);
-
-        return $this->classCreatorService->createSingle($itemClass, array_column($match, self::MATCH_STRING));
+        return new $itemClass(...array_column($match, self::MATCH_STRING));
     }
 }

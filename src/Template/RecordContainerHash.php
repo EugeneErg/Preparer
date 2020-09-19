@@ -8,7 +8,7 @@ use EugeneErg\Preparer\Record;
 
 /**
  * Class Hash
- * @package EugeneErg\Preparer\Template
+ * @package EugeneErg\Preparer\AbstractTemplate
  */
 abstract class RecordContainerHash extends AbstractTemplate
 {
