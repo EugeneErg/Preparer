@@ -1,18 +1,23 @@
 <?php namespace EugeneErg\Preparer\SQL;
 
-use EugeneErg\Preparer\SQL\Containers\FunctionContainer;
-use EugeneErg\Preparer\SQL\Records\ValuesRecord;
-
-class Values extends AbstractQuery
+class Values extends AbstractSql
 {
+    /**
+     * @var array[]
+     */
     private array $values;
-    private ValuesRecord $valuesRecord;
 
-    public function __construct(array ...$values)
+    /**
+     * Values constructor.
+     * @param array[] $values
+     * @param bool $distinct
+     * @param int|null $limit
+     * @param int $offset
+     */
+    public function __construct(array $values, bool $distinct = false, int $limit = null, $offset = 0)
     {
         $this->values = $values;
-        $this->valuesRecord = new ValuesRecord($this);
-        parent::__construct();
+        parent::__construct($distinct, $limit, $offset);
     }
 
     /**
@@ -21,10 +26,5 @@ class Values extends AbstractQuery
     public function getValues(): array
     {
         return $this->values;
-    }
-
-    public function __get(string $name): FunctionContainer
-    {
-        return $this->valuesRecord->getContainer()->$name;
     }
 }

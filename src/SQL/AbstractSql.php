@@ -1,21 +1,10 @@
-<?php namespace EugeneErg\Preparer\SQL\Query;
+<?php namespace EugeneErg\Preparer\SQL;
 
-use EugeneErg\Preparer\SQL\Containers\MainAggregateFunctionContainer;
-use EugeneErg\Preparer\SQL\Functions\NotFunction;
-use EugeneErg\Preparer\SQL\Functions\Traits\FunctionTrait;
-use EugeneErg\Preparer\SQL\Query\Block\From;
-use EugeneErg\Preparer\SQL\Query\Block\Order;
+use EugeneErg\Preparer\SQL\Containers\AggregateFunctionContainer;
+use EugeneErg\Preparer\SQL\Records\AggregateFunctionRecord;
 
-/**
- * @mixin MainAggregateFunctionContainer
- */
-abstract class AbstractQuery implements MainQueryInterface
+abstract class AbstractSql
 {
-    use FunctionTrait {
-        FunctionTrait::__construct as private functionConstructor;
-        FunctionTrait::getQuery as private;
-    }
-
     private bool $distinct;
     private ?int $limit;
     private int $offset;
@@ -23,18 +12,19 @@ abstract class AbstractQuery implements MainQueryInterface
     private array $where = [];
     private array $groupBy = [];
     private array $orderBy = [];
+    private AggregateFunctionRecord $aggregateFunctionRecord;
 
     public function __construct(bool $distinct = false, int $limit = null, int $offset = 0)
     {
         $this->distinct = $distinct;
         $this->limit = $limit;
         $this->offset = $offset;
-        $this->functionConstructor($this);
+        $this->aggregateFunctionRecord = new AggregateFunctionRecord($this);
     }
 
     public function from(SubQueryInterface $subQuery, string $join = null): self
     {
-        $this->from[] = new From($subQuery, $join);
+        $this->from[] = [$subQuery, $join];
 
         return $this;
     }
@@ -53,19 +43,16 @@ abstract class AbstractQuery implements MainQueryInterface
         return $this;
     }
 
-    public function orderBy($value, bool $ascDirection = true): self
+    public function orderBy($value, bool $ascDirection= true): self
     {
-        $this->orderBy[] = new Order($value, $ascDirection);
+        $this->orderBy[] = [$value, $ascDirection];
 
         return $this;
     }
 
-    public function count(bool $distinct = false, ValueInterface $value = null): NotFunction
+    public function __call(string $name, array $arguments): AggregateFunctionContainer
     {
-        /** @var NotFunction $result */
-        $result = $this->call('count', [$distinct, $value]);
-
-        return $result;
+        return $this->aggregateFunctionRecord->getContainer()->$name(...$arguments);
     }
 
     public function getLimit(): ?int

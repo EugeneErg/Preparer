@@ -1,32 +1,87 @@
 <?php namespace EugeneErg\Preparer\SQL\Containers;
 
+use EugeneErg\Preparer\Action\Record;
+use EugeneErg\Preparer\Container;
+use EugeneErg\Preparer\Hasher;
 use EugeneErg\Preparer\SQL\Field;
+use EugeneErg\Preparer\SQL\Query\DeleteQuery;
+use EugeneErg\Preparer\SQL\Query\SelectQuery;
+use EugeneErg\Preparer\SQL\Query\UpdateQuery;
 use EugeneErg\Preparer\SQL\Table;
+use EugeneErg\Preparer\SQL\Values;
 
-class QueryContainer extends SubQueryContainer
+class QueryContainer extends Container
 {
-    public function delete(Table ...$tables): self
-    {
-        return $this->__call('delete', $tables);
+    /**
+     * @param string|null $type
+     * @param string|Table|Values|SubQueryContainer $query
+     * @param int|null $limit
+     * @param int $offset
+     * @param bool $distinct
+     * @return $this
+     */
+    public function from(
+        ?string $type,
+        $query,
+        int $limit = null,
+        int $offset = 0,
+        bool $distinct = false
+    ): self {
+        return $this->__call('from', [$type, $query, $limit, $offset, $distinct]);
     }
 
     /**
-     * @param Field $field
      * @param string|AggregateFunctionContainer|Field|FunctionContainer $value
-     * @return QueryContainer
+     * @return $this
      */
-    public function update(Field $field, $value): self
+    public function where($value): self
     {
-        return $this->__call('update', [$field, $value]);
+        return $this->__call('where', [$value]);
     }
 
     /**
-     * @param string $fieldName
      * @param string|AggregateFunctionContainer|Field|FunctionContainer $value
-     * @return QueryContainer
+     * @param bool $directionAsc
+     * @return $this
      */
-    public function select(string $fieldName, $value): self
+    public function orderBy($value, bool $directionAsc = true): self
     {
-        return $this->__call('select', [$fieldName, $value]);
+        return $this->__call('orderBy', [$value, $directionAsc]);
+    }
+
+    /**
+     * @param string|AggregateFunctionContainer|Field|FunctionContainer $value
+     * @return $this
+     */
+    public function groupBy($value): self
+    {
+        return $this->__call('groupBy', [$value]);
+    }
+
+    /**
+     * @param Table ...$tables
+     * @return DeleteQuery
+     */
+    public function delete(Table ...$tables): DeleteQuery
+    {
+        return new DeleteQuery($this, $tables);
+    }
+
+    /**
+     * @param array $values
+     * @return UpdateQuery
+     */
+    public function update(array $values): UpdateQuery
+    {
+        return new UpdateQuery($this, $values);
+    }
+
+    /**
+     * @param array $values
+     * @return SelectQuery
+     */
+    public function select(array $values): SelectQuery
+    {
+        return new SelectQuery($this, $values);
     }
 }

@@ -1,9 +1,7 @@
 <?php namespace EugeneErg\Preparer\SQL\Containers;
 
 use EugeneErg\Preparer\Container;
-use EugeneErg\Preparer\SQL\AbstractQuery;
 use EugeneErg\Preparer\SQL\Field;
-use EugeneErg\Preparer\SQL\Query\SubQuery;
 use EugeneErg\Preparer\SQL\Table;
 use EugeneErg\Preparer\SQL\Values;
 

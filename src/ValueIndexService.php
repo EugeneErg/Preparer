@@ -5,24 +5,7 @@ class ValueIndexService
     /**
      * @var array
      */
-    private $values = [];
-
-    /**
-     * @var $this
-     */
-    private static $instance;
-
-    /**
-     * @return static
-     */
-    public static function instance(): self
-    {
-        if (!isset(self::$instance)) {
-            self::$instance = new self();
-        }
-
-        return self::$instance;
-    }
+    private array $values = [];
 
     /**
      * @param mixed ...$values

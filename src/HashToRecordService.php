@@ -167,7 +167,7 @@ class HashToRecordService
     private function getAction(Record $record):AbstractAction
     {
         return $this->getOnce($this->actions, $record, static function(Record $record) {
-            $this->virtualType[]
+            //$this->virtualType[]
 
             $action = $record->getAction();
 

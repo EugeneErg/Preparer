@@ -1,17 +1,31 @@
 <?php namespace EugeneErg\Preparer\SQL;
 
-use EugeneErg\Preparer\SQL\Containers\AggregateFunctionContainer;
 use EugeneErg\Preparer\SQL\Containers\QueryContainer;
-use EugeneErg\Preparer\SQL\Records\QueryRecord;
-use EugeneErg\Preparer\SQL\Records\SubQueryRecord;
 
-/**
- * @mixin AggregateFunctionContainer|QueryContainer
- */
-class Query extends AbstractQuery
+class Query
 {
-    public function __construct()
+    public function insert(QueryContainer $query, array $inserts): string
     {
-        parent::__construct(new QueryRecord($this));
+
+    }
+
+    public function select(QueryContainer $query, array $selects): string
+    {
+
+    }
+
+    public function delete(QueryContainer $query, Table ...$tables): string
+    {
+
+    }
+
+    public function update(QueryContainer $query, array $updates): string
+    {
+
+    }
+
+    public function rawExecute(string $query)
+    {
+
     }
 }

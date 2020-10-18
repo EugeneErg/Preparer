@@ -1,10 +1,8 @@
-<?php use EugeneErg\Preparer\Parser\AbstractTemplate;
-
-namespace EugeneErg\Preparer\SQL\Raw;
+<?php namespace EugeneErg\Preparer\SQL\Raw;
 
 use EugeneErg\Preparer\Container;
 use EugeneErg\Preparer\Parser\AbstractTemplate;
-use EugeneErg\Preparer\SQL\Query;
+use EugeneErg\Preparer\SQL\OldQuery;
 use EugeneErg\Preparer\SQL\Raw\Templates\CommandTemplate;
 use EugeneErg\Preparer\SQL\Raw\Templates\CommentTemplate;
 use EugeneErg\Preparer\SQL\Raw\Templates\ContextTemplate;
@@ -42,7 +40,7 @@ class Raw extends AbstractRaw
     {
         foreach ($templates as $template) {
             switch ($template->getName()) {
-                case
+                //case
             }
         }
     }
@@ -53,54 +51,89 @@ class Raw extends AbstractRaw
      */
     protected function templatesToQuery(array $templates): Container
     {
-        $tree = [
-            '' => ['select', 'update', 'delete', 'insert into'],
-            'select' => ['correlate', 'from'],
-            'update' => ['set'],
-            'insert into' => ['set'],
-            'delete' => ['correlate', 'from'],
-            'set' => ['correlate', 'from'],
-
-            'correlate' => ['correlate', 'from'],
-            'from' => ['join', 'where', 'group by', 'order by', 'limit'],
-            'join' => ['on', 'join', 'where', 'group by', 'order by', 'limit'],
-            'on' => ['join', 'where', 'group by', 'order by', 'limit'],
-            'where' => ['group by', 'order by', 'limit'],
-            'group by' => ['having', 'order by', 'limit'],
-            'having' => ['order by', 'limit'],
+        $structures = [
+            $select = new Structure(),
+            $from = new Structure(),
+            $orderBy = new Structure(),
+            $groupBy = new Structure(),
+            $where = new Structure(),
+            $join = new Structure(),
+            $tree = new Structure(),
+            $having = new Structure(),
+            $update = new Structure(),
+            $insert = new Structure(),
         ];
+        $tree->addChildren([
+            'select' => $select,
+            'update' => $update,
+            'delete'=> $select,
+            'insert into' => $insert,
+        ]);
+        $select->addChildren([
+            'from' => $from,
+            'correlate' => $select,
+        ]);
+        $from->addChildren([
+            'join' => $join,
+            'where' => $where,
+            'group by' => $groupBy,
+            'order by' => $orderBy,
+            'limit',
+        ]);
+        $join->addChildren([
+            'on' => $from,
+            'join' => $join,
+            'where' => $where,
+            'group by' => $groupBy,
+            'order by' => $orderBy,
+            'limit',
+        ]);
+        $where->addChildren([
+            'group by' => $groupBy,
+            'order by' => $orderBy,
+            'limit',
+        ]);
+        $groupBy->addChildren([
+            'having' => $having,
+            'order by' => $orderBy,
+            'limit',
+        ]);
+        $having->addChildren([
+            'order by' => $orderBy,
+            'limit',
+        ]);
+        $orderBy->addChild('limit');
+        $update->addChild('set', $select);
+        $insert->addChild('set', $select);
+
         $postfixes = [
-            'union all' => ['correlate', 'from', 'join'],
             'union' => ['correlate', 'from', 'join'],
         ];
 
         foreach ($postfixes as $postfix => $commands) {
-            foreach ($tree as $parentCommand => $childCommands) {
-                foreach (array_intersect($commands, $childCommands) as $command) {
-                    $tree[$parentCommand][] = $command . ' ' . $postfix;
-                }
-
-                if (in_array($parentCommand, $commands, true)) {
-                    $tree[$parentCommand . ' ' . $postfix] = $tree[$parentCommand];
+            foreach ($structures as $structure) {
+                foreach (array_intersect($commands, $structure->getChildNames()) as $command) {
+                    $structure->addChild(
+                        $command . ' ' . $postfix,
+                        $structure->getChild($command)
+                    );
                 }
             }
         }
 
         $prefixesByCommand = [
             'join' => ['left', 'right', 'outer', 'inner'],
+            'join union' => ['left', 'right', 'outer', 'inner'],
         ];
 
         foreach ($prefixesByCommand as $command => $prefixes) {
-            foreach ($tree as $parentCommand => $childCommands) {
-                if (in_array($command, $childCommands, true)) {
+            foreach ($structures as $structure) {
+                if (in_array($command, $structure->getChildNames(), true)) {
                     foreach ($prefixes as $prefix) {
-                        $tree[$parentCommand][] = $prefix . ' ' . $command;
-                    }
-                }
-
-                if (isset($tree[$command])) {
-                    foreach ($prefixes as $prefix) {
-                        $tree[$prefix . ' ' . $command][] = $tree[$command];
+                        $structure->addChild(
+                            $prefix . ' ' . $command,
+                            $structure->getChild($command)
+                        );
                     }
                 }
             }
@@ -108,15 +141,15 @@ class Raw extends AbstractRaw
 
         $commands = $this->splitByCommands($this->createStructure($templates), $tree);
 
-        if (!isset($commands[0][0])
-            || !in_array($commands[0][0], [
+        if (!isset($commands[0])
+            || !in_array($commands[0]->getName(), [
                 'select', 'insert into', 'update', 'delete'
             ], true)
         ) {
             throw new RawException();
         }
 
-        switch ($commands[0][0]->getValue()) {
+        switch ($commands[0]->getName()) {
             case 'select': return $this->createSelectQuery($commands);
             case 'insert into': return $this->createInsertQuery($commands);
             case 'update': return $this->createUpdateQuery($commands);
@@ -169,15 +202,13 @@ class Raw extends AbstractRaw
     }
 
     /**
-     * @param Parenthesis[]|AbstractTemplate[]
-     * @param string[][] $commandsTree
+     * @param Parenthesis[]|AbstractTemplate[] $structure
+     * @param Structure $commandsTree
      * @return Command[]
      */
-    private function splitByCommands(array $structure, array $commandsTree): array
+    private function splitByCommands(array $structure, Structure $commandsTree): array
     {
-        $commands = array_map(function(string $command) {
-            return explode(' ', $command);
-        }, $commandsTree['']);
+        $commands = $this->getGroups($commandsTree);
         $result = [];
         $includes = [];
         $commandName = null;
@@ -198,10 +229,14 @@ class Raw extends AbstractRaw
 
                     if (!empty($includes)) {
                         $result[] = new Command($commandName, $includes);
+                        $includes = [];
                     }
 
-                    $includes[] = implode(' ', $group);
+                    $commandName = implode(' ', $group);
                     $position += count($group) - 1;
+                    $commands = isset($commandsTree[$commandName]) ? array_map(function(string $command) {
+                        return explode(' ', $command);
+                    }, $commandsTree[$commandName]) : [];
 
                     continue(2);
                 }
@@ -218,12 +253,101 @@ class Raw extends AbstractRaw
     }
 
     /**
+     * @param Structure $structure
+     * @return string[][]
+     */
+    private function getGroups(Structure $structure): array
+    {
+        $commands = array_map(function(string $command) {
+            return explode(' ', $command);
+        }, $structure->getChildNames());
+        usort($commands, function(array $groupA, array $groupB): int {
+            return count($groupA) <=> count($groupB);
+        });
+
+        return $commands;
+    }
+
+    /**
      * @@param Command[] $commands
      * @return Container
      */
     private function createSelectQuery(array $commands): Container
     {
-        $query = new Query();
+        $query = new OldQuery();
+
+        foreach ($commands as $command) {
+            switch ($command->getName()) {
+                case 'select':
+
+                case 'order by':
+
+                case 'group by':
+
+                case 'where':
+                case 'on':
+                case 'having':
+
+                case 'limit':
+
+                default:
+                    $keys = explode(' ', $command->getName(), 3);
+
+                    switch (count($keys)) {
+                        case 1:
+                            $commandName = $keys[0];
+                            $join = null;
+                            $union = false;
+
+                            break;
+                        case 2:
+                            if ($keys[1] === 'union') {
+                                $commandName = $keys[0];
+                                $join = null;
+                                $union = true;
+                            } else {
+                                $commandName = $keys[1];
+                                $join = $keys[0];
+                                $union = false;
+                            }
+
+                            break;
+                        default:
+                            $commandName = $keys[1];//join
+                            $join = $keys[0];
+                            $union = true;
+                    }
+
+                    if ($union) {
+
+                    }
+
+                /**
+                 * left from union all(
+                 *     (
+                 *         select
+                 *             qwe as q
+                 *         from table1
+                 *     ),
+                 *     (
+                 *
+                 *     )
+                 *
+                 *
+                 * )
+                 *
+                 *
+                 *
+                 */
+
+
+
+
+
+
+            }
+        }
+
         $selectCommand = array_shift($commands);
         $selects = $this->splitByPunctuation(
             $selectCommand->getIncludes(),
@@ -247,12 +371,8 @@ class Raw extends AbstractRaw
             }
         }
 
-        $three = [
-            'select' => ['from'],
-            'from' => ['where', 'group by', 'order by', 'join', 'left join', 'right join', 'inner join', 'left join', 'left join', 'left join', 'left join', 'left join', 'left join', 'left join', 'left join', 'left join', 'left join', 'left join']
 
 
-        ];
 
 
 
@@ -322,3 +442,8 @@ class Raw extends AbstractRaw
         return $result;
     }
 }
+/**
+ * $union = new union(true);//union all
+ * $union = new union();//union
+ * $union->select('field1', $table->field, $table2->field)
+ */
