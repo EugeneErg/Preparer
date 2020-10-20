@@ -2,19 +2,20 @@
 
 use ArrayAccess;
 use EugeneErg\Preparer\Exception\InvalidActionException;
-use EugeneErg\Preparer\SQL\Containers\FunctionContainer;
-use EugeneErg\Preparer\SQL\Records\ValueFunctionRecord;
+use EugeneErg\Preparer\SQL\Functions\Traits\AllFunctionTrait;
+use EugeneErg\Preparer\SQL\Query\QueryInterface;
 
-/**
- * @mixin FunctionContainer
- */
-class Value implements ArrayAccess
+class Value implements QueryInterface, ArrayAccess
 {
+    use AllFunctionTrait{
+        AllFunctionTrait::__construct as functionConstructor;
+        AllFunctionTrait::getQuery as private;
+    }
+
     /**
      * @var mixed
      */
     private $object;
-    private ValueFunctionRecord $valueRecord;
 
     /**
      * @param mixed $object
@@ -22,7 +23,7 @@ class Value implements ArrayAccess
     public function __construct($object)
     {
         $this->object = $object;
-        $this->valueRecord = new ValueFunctionRecord($this);
+        $this->functionConstructor($this);
     }
 
     /**
@@ -33,22 +34,28 @@ class Value implements ArrayAccess
         return $this->object;
     }
 
-    public function __get(string $name): FunctionContainer
+    public function __get(string $name): self
     {
-        return $this->valueRecord->getContainer()->$name;
+        return $this->offsetGet($name);
     }
 
-    public function __call(string $name, array $arguments): FunctionContainer
+    /**
+     * @param string|int $name
+     * @return $this
+     */
+    public function offsetGet($name): self
     {
-        return $this->valueRecord->getContainer()->$name(...$arguments);
-    }
+        $object = $this->object;
 
-    public function offsetGet($name): FunctionContainer
-    {
-        /** @var FunctionContainer $result */
-        $result = $this->valueRecord->getContainer()[$name];
+        if (is_array($object)) {
+            $object = $object[$name];
+        } elseif (is_object($object)) {
+            $object = $object->$name;
+        } else {
+            $object = null;
+        }
 
-        return $result;
+        return new Value($object);
     }
 
     /**

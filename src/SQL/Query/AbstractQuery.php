@@ -5,6 +5,7 @@ use EugeneErg\Preparer\SQL\Functions\NotFunction;
 use EugeneErg\Preparer\SQL\Functions\Traits\FunctionTrait;
 use EugeneErg\Preparer\SQL\Query\Block\From;
 use EugeneErg\Preparer\SQL\Query\Block\Order;
+use EugeneErg\Preparer\ValueInterface;
 
 /**
  * @mixin MainAggregateFunctionContainer
@@ -16,17 +17,24 @@ abstract class AbstractQuery implements MainQueryInterface
         FunctionTrait::getQuery as private;
     }
 
-    private bool $distinct;
     private ?int $limit;
     private int $offset;
     private array $from = [];
+    /**
+     * @var ValueInterface[]
+     */
     private array $where = [];
+    /**
+     * @var ValueInterface[]
+     */
     private array $groupBy = [];
+    /**
+     * @var Order[]
+     */
     private array $orderBy = [];
 
-    public function __construct(bool $distinct = false, int $limit = null, int $offset = 0)
+    public function __construct(int $limit = null, int $offset = 0)
     {
-        $this->distinct = $distinct;
         $this->limit = $limit;
         $this->offset = $offset;
         $this->functionConstructor($this);
@@ -39,21 +47,21 @@ abstract class AbstractQuery implements MainQueryInterface
         return $this;
     }
 
-    public function where($value): self
+    public function where(ValueInterface $value): self
     {
         $this->where[] = $value;
 
         return $this;
     }
 
-    public function groupBy($value): self
+    public function groupBy(ValueInterface $value): self
     {
         $this->groupBy[] = $value;
 
         return $this;
     }
 
-    public function orderBy($value, bool $ascDirection = true): self
+    public function orderBy(ValueInterface $value, bool $ascDirection = true): self
     {
         $this->orderBy[] = new Order($value, $ascDirection);
 
@@ -76,11 +84,6 @@ abstract class AbstractQuery implements MainQueryInterface
     public function getOffset(): int
     {
         return $this->offset;
-    }
-
-    public function isDistinct(): bool
-    {
-        return $this->distinct;
     }
 
     public function getFrom(): array

@@ -6,7 +6,7 @@ class UpdateQuery extends AbstractQuery
 
     public function __construct(array $values, int $limit = null, int $offset = 0)
     {
-        parent::__construct(false, $limit, $offset);
+        parent::__construct($limit, $offset);
         $this->values = $values;
     }
 

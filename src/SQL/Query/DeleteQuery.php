@@ -9,9 +9,15 @@ class DeleteQuery extends AbstractQuery
      */
     private array $tables;
 
-    public function __construct(Table ...$tables)
+    /**
+     * DeleteQuery constructor.
+     * @param Table[] $tables
+     * @param int|null $limit
+     * @param int $offset
+     */
+    public function __construct(array $tables, int $limit = null, int $offset = 0)
     {
-        parent::__construct($query, $condition);
+        parent::__construct($limit, $offset);
         $this->tables = $tables;
     }
 

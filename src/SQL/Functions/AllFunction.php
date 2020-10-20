@@ -1,13 +1,11 @@
 <?php namespace EugeneErg\Preparer\SQL\Functions;
 
-use EugeneErg\Preparer\SQL\Functions\Traits\ArrayFunctionTrait;
-use EugeneErg\Preparer\SQL\Functions\Traits\NumericFunctionTrait;
-use EugeneErg\Preparer\SQL\Functions\Traits\StringFunctionTrait;
+use EugeneErg\Preparer\SQL\Functions\Traits\AllFunctionTrait;
 use ArrayAccess;
 
 class AllFunction implements ArrayAccess
 {
-    use ArrayFunctionTrait, StringFunctionTrait, NumericFunctionTrait;
+    use AllFunctionTrait;
 
     public function offsetExists($offset): bool
     {

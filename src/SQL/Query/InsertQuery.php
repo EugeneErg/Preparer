@@ -4,9 +4,9 @@ class InsertQuery extends AbstractQuery
 {
     private array $values;
 
-    public function __construct(array $values, bool $distinct = false, int $limit = null, int $offset = 0)
+    public function __construct(array $values, int $limit = null, int $offset = 0)
     {
-        parent::__construct($distinct, $limit, $offset);
+        parent::__construct($limit, $offset);
         $this->values = $values;
     }
 
