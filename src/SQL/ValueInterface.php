@@ -1,4 +1,4 @@
-<?php namespace EugeneErg\Preparer;
+<?php namespace EugeneErg\Preparer\SQL;
 
 interface ValueInterface
 {

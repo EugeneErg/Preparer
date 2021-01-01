@@ -19,6 +19,9 @@ abstract class AbstractQuery implements MainQueryInterface
 
     private ?int $limit;
     private int $offset;
+    /**
+     * @var From[]
+     */
     private array $from = [];
     /**
      * @var ValueInterface[]
@@ -68,7 +71,12 @@ abstract class AbstractQuery implements MainQueryInterface
         return $this;
     }
 
-    public function count(bool $distinct = false, ValueInterface $value = null): NotFunction
+    /**
+     * @param bool $distinct
+     * @param ValueInterface|QueryInterface|null $value
+     * @return NotFunction
+     */
+    public function count(bool $distinct = false, $value = null): NotFunction
     {
         /** @var NotFunction $result */
         $result = $this->call('count', [$distinct, $value]);
@@ -86,21 +94,33 @@ abstract class AbstractQuery implements MainQueryInterface
         return $this->offset;
     }
 
+    /**
+     * @return From[]
+     */
     public function getFrom(): array
     {
         return $this->from;
     }
 
+    /**
+     * @return ValueInterface[]
+     */
     public function getGroupBy(): array
     {
         return $this->groupBy;
     }
 
+    /**
+     * @return Order[]
+     */
     public function getOrderBy(): array
     {
         return $this->orderBy;
     }
 
+    /**
+     * @return ValueInterface[]
+     */
     public function getWhere(): array
     {
         return $this->where;

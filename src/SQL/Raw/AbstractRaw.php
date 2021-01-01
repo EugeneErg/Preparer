@@ -3,6 +3,9 @@
 use EugeneErg\Preparer\Container;
 use EugeneErg\Preparer\Parser\AbstractTemplate;
 use EugeneErg\Preparer\Parser\Parser;
+use EugeneErg\Preparer\SQL\Query\MainQueryInterface;
+use EugeneErg\Preparer\SQL\Query\SubQuery;
+use EugeneErg\Preparer\SQL\ValueInterface;
 
 abstract class AbstractRaw
 {
@@ -16,36 +19,36 @@ abstract class AbstractRaw
         $this->templates = (new Parser($templates, $contextTemplate))->parse($query);
     }
 
-    public function toSubQuery(): Container
+    public function toSubQuery(): SubQuery
     {
         return $this->templatesToSubQuery($this->templates);
     }
 
-    public function toQuery(): Container
+    public function toQuery(): MainQueryInterface
     {
         return $this->templatesToQuery($this->templates);
     }
 
-    public function toValue(): Container
+    public function toValue(): ValueInterface
     {
         return $this->templatesToValue($this->templates);
     }
 
     /**
      * @param AbstractTemplate[] $templates
-     * @return Container
+     * @return SubQuery
      */
-    abstract protected function templatesToSubQuery(array $templates): Container;
+    abstract protected function templatesToSubQuery(array $templates): SubQuery;
 
     /**
      * @param AbstractTemplate[] $templates
-     * @return Container
+     * @return MainQueryInterface
      */
-    abstract protected function templatesToQuery(array $templates): Container;
+    abstract protected function templatesToQuery(array $templates): MainQueryInterface;
 
     /**
      * @param AbstractTemplate[] $templates
-     * @return Container
+     * @return ValueInterface
      */
-    abstract protected function templatesToValue(array $templates): Container;
+    abstract protected function templatesToValue(array $templates): ValueInterface;
 }

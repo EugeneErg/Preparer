@@ -2,8 +2,9 @@
 
 use EugeneErg\Preparer\SQL\Functions\Traits\AllFunctionTrait;
 use ArrayAccess;
+use EugeneErg\Preparer\ValueInterface;
 
-class AllFunction implements ArrayAccess
+class AllFunction implements ArrayAccess, ValueInterface
 {
     use AllFunctionTrait;
 

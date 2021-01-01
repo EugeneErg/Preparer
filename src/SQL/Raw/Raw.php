@@ -2,7 +2,10 @@
 
 use EugeneErg\Preparer\Container;
 use EugeneErg\Preparer\Parser\AbstractTemplate;
-use EugeneErg\Preparer\SQL\OldQuery;
+use EugeneErg\Preparer\SQL\Query\Block\From;
+use EugeneErg\Preparer\SQL\Query\MainQueryInterface;
+use EugeneErg\Preparer\SQL\Query\QueryInterface;
+use EugeneErg\Preparer\SQL\Query\SelectQuery;
 use EugeneErg\Preparer\SQL\Raw\Templates\CommandTemplate;
 use EugeneErg\Preparer\SQL\Raw\Templates\CommentTemplate;
 use EugeneErg\Preparer\SQL\Raw\Templates\ContextTemplate;
@@ -16,9 +19,11 @@ use EugeneErg\Preparer\SQL\Raw\Templates\StringTemplate;
 use EugeneErg\Preparer\SQL\Structures\Command;
 use EugeneErg\Preparer\SQL\Structures\Parenthesis;
 
+use EugeneErg\Preparer\SQL\Query\SubQuery;
+use EugeneErg\Preparer\SQL\ValueInterface;
 use function in_array;
 
-class Raw extends AbstractRaw
+class Raw extends AbstractRaw implements ValueInterface
 {
     public function __construct(string $query)
     {
@@ -36,7 +41,7 @@ class Raw extends AbstractRaw
     }
 
     /** @inheritDoc*/
-    protected function templatesToSubQuery(array $templates): Container
+    protected function templatesToSubQuery(array $templates): SubQuery
     {
         foreach ($templates as $template) {
             switch ($template->getName()) {
@@ -49,7 +54,7 @@ class Raw extends AbstractRaw
      * @inheritDoc
      * @throws RawException
      */
-    protected function templatesToQuery(array $templates): Container
+    protected function templatesToQuery(array $templates): MainQueryInterface
     {
         $structures = [
             $select = new Structure(),
@@ -105,9 +110,10 @@ class Raw extends AbstractRaw
         $orderBy->addChild('limit');
         $update->addChild('set', $select);
         $insert->addChild('set', $select);
-
         $postfixes = [
-            'union' => ['correlate', 'from', 'join'],
+            'union' => [From::TYPE_CORRELATE, 'join'],
+            'union all' => [From::TYPE_CORRELATE, 'join'],
+            'values' => [From::TYPE_CORRELATE, 'join'],
         ];
 
         foreach ($postfixes as $postfix => $commands) {
@@ -122,8 +128,8 @@ class Raw extends AbstractRaw
         }
 
         $prefixesByCommand = [
-            'join' => ['left', 'right', 'outer', 'inner'],
-            'join union' => ['left', 'right', 'outer', 'inner'],
+            'join' => [From::TYPE_LEFT, From::TYPE_RIGHT, From::TYPE_OUTER, From::TYPE_INNER],
+            'join union' => [From::TYPE_LEFT, From::TYPE_RIGHT, From::TYPE_OUTER, From::TYPE_INNER],
         ];
 
         foreach ($prefixesByCommand as $command => $prefixes) {
@@ -141,14 +147,6 @@ class Raw extends AbstractRaw
 
         $commands = $this->splitByCommands($this->createStructure($templates), $tree);
 
-        if (!isset($commands[0])
-            || !in_array($commands[0]->getName(), [
-                'select', 'insert into', 'update', 'delete'
-            ], true)
-        ) {
-            throw new RawException();
-        }
-
         switch ($commands[0]->getName()) {
             case 'select': return $this->createSelectQuery($commands);
             case 'insert into': return $this->createInsertQuery($commands);
@@ -158,7 +156,7 @@ class Raw extends AbstractRaw
     }
 
     /** @inheritDoc*/
-    protected function templatesToValue(array $templates): Container
+    protected function templatesToValue(array $templates): ValueInterface
     {
 
     }
@@ -171,9 +169,7 @@ class Raw extends AbstractRaw
      */
     private function createStructure(array $templates, &$position = 0): array
     {
-        $result = [];
-
-        for (; $position < count($templates); $position++) {
+        for ($result = []; $position < count($templates); $position++) {
             $template = $templates[$position];
 
             if ($template instanceof ParenthesisTemplate) {
@@ -270,11 +266,35 @@ class Raw extends AbstractRaw
 
     /**
      * @@param Command[] $commands
-     * @return Container
+     * @return SelectQuery
      */
-    private function createSelectQuery(array $commands): Container
+    private function createSelectQuery(array $commands): SelectQuery
     {
-        $query = new OldQuery();
+        $queries = $this->createSubQueries($commands);
+
+        "
+            select distinct
+                q.qwe.ber.id as 'gbtgte',
+                {$qwe->id} + 12 as 'egtgre'
+            from(
+                distinct
+                from(
+                    from ber
+                )qwe
+            )q,
+            join {$qwe}
+        ";
+
+
+        $selectCommand = $commands[0];
+        $selectBody = $selectCommand->getIncludes();
+
+
+
+
+        $query = new SelectQuery([
+
+        ], );
 
         foreach ($commands as $command) {
             switch ($command->getName()) {
@@ -294,25 +314,25 @@ class Raw extends AbstractRaw
                     $keys = explode(' ', $command->getName(), 3);
 
                     switch (count($keys)) {
-                        case 1:
+                        case 1://from or join
                             $commandName = $keys[0];
                             $join = null;
                             $union = false;
 
                             break;
                         case 2:
-                            if ($keys[1] === 'union') {
+                            if ($keys[1] === 'union') {//from union or join union
                                 $commandName = $keys[0];
                                 $join = null;
                                 $union = true;
                             } else {
-                                $commandName = $keys[1];
+                                $commandName = $keys[1];//left join
                                 $join = $keys[0];
                                 $union = false;
                             }
 
                             break;
-                        default:
+                        default://left join union
                             $commandName = $keys[1];//join
                             $join = $keys[0];
                             $union = true;
@@ -390,6 +410,63 @@ class Raw extends AbstractRaw
          * having
          * order by
          */
+    }
+
+    /**
+     * @param Command[] $commands
+     * @return QueryInterface[]
+     */
+    private function createSubQueries(array $commands): array
+    {
+        $notQueryCommand = [
+            'select', 'order by', 'group by', 'where', 'on', 'having', 'limit'
+        ];
+        $queries = [];
+        $correlateQueries = [];
+
+        foreach ($commands as $command) {
+            if (in_array($command->getName(), $notQueryCommand, true)) {
+                continue;
+            }
+
+            if ($command->getName() === 'from') {
+                $from = $this->splitByPunctuation(
+                    $command->getIncludes(),
+                    PunctuationTemplate::VALUE_DOT
+                );
+
+                foreach ($from as $items) {
+
+                }
+
+                continue;
+            }
+
+            $keys = explode(' ', $command->getName(), 3);
+            $join = null;
+            $union = false;
+            $all = false;
+
+            foreach ($keys as $key) {
+                switch ($key) {
+                    case 'join': break;
+                    case 'union':
+                        $union = true;
+                        break;
+                    case 'all':
+                        $all = true;
+                        break;
+                    default:
+                        $join = $key;
+                }
+            }
+
+            if ($join === From::TYPE_CORRELATE) {
+                $correlateQueries[] = $command;
+            } else {
+                $queries[] = $command;
+            }
+        }
     }
 
     /**

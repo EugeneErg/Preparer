@@ -6,10 +6,10 @@ class PunctuationTemplate extends AbstractTemplate
 {
     public const TEMPLATE = ',|;|:|\\?';
 
-    public const VALUE_DOT = 'dot';
-    public const VALUE_SEMICOLON = 'semicolon';
-    public const VALUE_QUESTION = 'question';
-    public const VALUE_COLON = 'colon';
+    public const VALUE_DOT = ',';
+    public const VALUE_SEMICOLON = ';';
+    public const VALUE_QUESTION = '?';
+    public const VALUE_COLON = ':';
 
     private string $value;
 

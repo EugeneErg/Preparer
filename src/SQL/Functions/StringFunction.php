@@ -2,15 +2,16 @@
 
 use EugeneErg\Preparer\SQL\Functions\Traits\StringFunctionTrait;
 use ArrayAccess;
+use EugeneErg\Preparer\ValueInterface;
 
-class StringFunction implements ArrayAccess
+class StringFunction implements ArrayAccess, ValueInterface
 {
     use StringFunctionTrait;
 
     public function offsetGet($offset): StringFunction
     {
         /** @var StringFunction $result */
-        $result = $this->getChildren('offset', $offset);
+        $result = $this->getChildren(StringFunction::class, 'offset', $offset);
 
         return $result;
     }

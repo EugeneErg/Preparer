@@ -1,8 +1,9 @@
 <?php namespace EugeneErg\Preparer\SQL\Functions;
 
 use EugeneErg\Preparer\SQL\Functions\Traits\ArrayFunctionTrait;
+use EugeneErg\Preparer\ValueInterface;
 
-class ArrayFunction implements \ArrayAccess
+class ArrayFunction implements \ArrayAccess, ValueInterface
 {
     use ArrayFunctionTrait;
 
