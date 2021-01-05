@@ -2,19 +2,12 @@
 
 use EugeneErg\Preparer\SQL\Functions\AllFunction;
 use EugeneErg\Preparer\SQL\Functions\NotFunction;
-use EugeneErg\Preparer\SQL\Functions\Traits\FunctionTrait;
 
-abstract class AbstractModelQuery implements ModelQueryInterface
+abstract class AbstractModel extends AbstractSource
 {
-    use FunctionTrait {
-        FunctionTrait::__construct as private functionConstructor;
-        FunctionTrait::getQuery as private;
-    }
-
-    public function __construct()
-    {
-        $this->functionConstructor($this);
-    }
+    /** @var self[] */
+    private array $contexts = [];
+    private array $sources = [];
 
     public function __get(string $name): AllFunction
     {
@@ -30,5 +23,17 @@ abstract class AbstractModelQuery implements ModelQueryInterface
         $result = $this->call('count', [$distinct]);
 
         return $result;
+    }
+
+    public function __invoke(AbstractQuery $query): self
+    {
+        $hash = $query->__toString();
+
+        if (!isset($this->contexts[$hash])) {
+            $this->contexts[$hash] = clone $this;
+            $this->contexts[$hash]->sources[] = $query;
+        }
+
+        return $this->contexts[$hash];
     }
 }

@@ -1,14 +1,14 @@
 <?php namespace EugeneErg\Preparer\SQL\Containers;
 
-use EugeneErg\Preparer\SQL\Query\MainQueryInterface;
+use EugeneErg\Preparer\SQL\Query\AbstractQuery;
 
 class MainAggregateFunctionContainer extends AbstractAggregateFunctionContainer
 {
-    private MainQueryInterface $mainQuery;
+    private AbstractQuery $query;
 
-    public function __construct(MainQueryInterface $mainQuery)
+    public function __construct(AbstractQuery $query)
     {
-        $this->mainQuery = $mainQuery;
+        $this->query = $query;
     }
 
     public function count(ValueInteface $value): self
@@ -16,8 +16,8 @@ class MainAggregateFunctionContainer extends AbstractAggregateFunctionContainer
         return $this->createNewByFunction('count', [$value]);
     }
 
-    public function getMainQuery(): MainQueryInterface
+    public function getQuery(): AbstractQuery
     {
-        return $this->mainQuery;
+        return $this->query;
     }
 }

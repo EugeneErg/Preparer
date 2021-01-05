@@ -1,9 +1,8 @@
 <?php namespace EugeneErg\Preparer\SQL\Raw;
 
-use EugeneErg\Preparer\Container;
 use EugeneErg\Preparer\Parser\AbstractTemplate;
 use EugeneErg\Preparer\Parser\Parser;
-use EugeneErg\Preparer\SQL\Query\MainQueryInterface;
+use EugeneErg\Preparer\SQL\Query\AbstractQuery;
 use EugeneErg\Preparer\SQL\Query\SubQuery;
 use EugeneErg\Preparer\SQL\ValueInterface;
 
@@ -24,7 +23,7 @@ abstract class AbstractRaw
         return $this->templatesToSubQuery($this->templates);
     }
 
-    public function toQuery(): MainQueryInterface
+    public function toQuery(): AbstractQuery
     {
         return $this->templatesToQuery($this->templates);
     }
@@ -42,9 +41,9 @@ abstract class AbstractRaw
 
     /**
      * @param AbstractTemplate[] $templates
-     * @return MainQueryInterface
+     * @return AbstractQuery
      */
-    abstract protected function templatesToQuery(array $templates): MainQueryInterface;
+    abstract protected function templatesToQuery(array $templates): AbstractQuery;
 
     /**
      * @param AbstractTemplate[] $templates

@@ -1,6 +1,6 @@
 <?php namespace EugeneErg\Preparer\SQL\Query;
 
-class TableQuery extends AbstractModelQuery implements SubQueryInterface
+class Table extends AbstractModel
 {
     private string $name;
     private ?string $schema;

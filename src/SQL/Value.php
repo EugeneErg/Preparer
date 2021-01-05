@@ -2,16 +2,10 @@
 
 use ArrayAccess;
 use EugeneErg\Preparer\Exception\InvalidActionException;
-use EugeneErg\Preparer\SQL\Functions\Traits\AllFunctionTrait;
-use EugeneErg\Preparer\SQL\Query\QueryInterface;
+use EugeneErg\Preparer\SQL\Query\AbstractSource;
 
-class Value implements QueryInterface, ArrayAccess
+class Value extends AbstractSource implements ArrayAccess
 {
-    use AllFunctionTrait{
-        AllFunctionTrait::__construct as functionConstructor;
-        AllFunctionTrait::getQuery as private;
-    }
-
     /**
      * @var mixed
      */
@@ -23,7 +17,7 @@ class Value implements QueryInterface, ArrayAccess
     public function __construct($object)
     {
         $this->object = $object;
-        $this->functionConstructor($this);
+        parent::__construct();
     }
 
     /**

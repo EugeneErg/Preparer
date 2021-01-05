@@ -1,17 +1,17 @@
 <?php namespace EugeneErg\Preparer\SQL\Query;
 
-class UnionQuery extends AbstractModelQuery implements SelectQueryInterface, SubQueryInterface
+class Union extends AbstractModel
 {
     private bool $all;
-    /**
-     * @var SelectQueryInterface[]
-     */
-    private array $unions = [];
+    /* @var ReturningQuery[] */
+    private array $unions;
+    private self $source;
 
-    public function __construct(bool $all, SelectQueryInterface ...$unions)
+    public function __construct(bool $all, ReturningQuery ...$unions)
     {
         $this->all = $all;
         $this->unions = $unions;
+        $this->source = $this;
         parent::__construct();
     }
 
@@ -21,7 +21,7 @@ class UnionQuery extends AbstractModelQuery implements SelectQueryInterface, Sub
     }
 
     /**
-     * @return SelectQueryInterface[]
+     * @return ReturningQuery[]
      */
     public function getUnions(): array
     {

@@ -2,7 +2,6 @@
 
 use EugeneErg\Preparer\SQL\Containers\MainAggregateFunctionContainer;
 use EugeneErg\Preparer\SQL\Functions\NotFunction;
-use EugeneErg\Preparer\SQL\Functions\Traits\FunctionTrait;
 use EugeneErg\Preparer\SQL\Query\Block\From;
 use EugeneErg\Preparer\SQL\Query\Block\Order;
 use EugeneErg\Preparer\ValueInterface;
@@ -10,42 +9,32 @@ use EugeneErg\Preparer\ValueInterface;
 /**
  * @mixin MainAggregateFunctionContainer
  */
-abstract class AbstractQuery implements MainQueryInterface
+abstract class AbstractQuery extends AbstractSource
 {
-    use FunctionTrait {
-        FunctionTrait::__construct as private functionConstructor;
-        FunctionTrait::getQuery as private;
-    }
-
+    /** @var self[] */
+    private array $sources;
     private ?int $limit;
     private int $offset;
-    /**
-     * @var From[]
-     */
+    /** @var From[] */
     private array $from = [];
-    /**
-     * @var ValueInterface[]
-     */
+    /** @var ValueInterface[] */
     private array $where = [];
-    /**
-     * @var ValueInterface[]
-     */
+    /** @var ValueInterface[] */
     private array $groupBy = [];
-    /**
-     * @var Order[]
-     */
+    /** @var Order[] */
     private array $orderBy = [];
 
     public function __construct(int $limit = null, int $offset = 0)
     {
         $this->limit = $limit;
         $this->offset = $offset;
-        $this->functionConstructor($this);
+        $this->sources[] = $this;
+        parent::__construct();
     }
 
-    public function from(SubQueryInterface $subQuery, string $join = null): self
+    public function from(AbstractSource $data, string $join = null): self
     {
-        $this->from[] = new From($subQuery, $join);
+        $this->from[] = new From($data, $join);
 
         return $this;
     }
@@ -73,7 +62,7 @@ abstract class AbstractQuery implements MainQueryInterface
 
     /**
      * @param bool $distinct
-     * @param ValueInterface|QueryInterface|null $value
+     * @param ValueInterface|null $value
      * @return NotFunction
      */
     public function count(bool $distinct = false, $value = null): NotFunction
@@ -125,4 +114,14 @@ abstract class AbstractQuery implements MainQueryInterface
     {
         return $this->where;
     }
+
+    public function __clone()
+    {
+        $this->sources[] = $this;
+        $this->from = [];
+        $this->where = [];
+        $this->groupBy = [];
+        $this->orderBy = [];
+    }
 }
+

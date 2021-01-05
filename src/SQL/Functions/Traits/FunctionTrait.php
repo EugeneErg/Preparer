@@ -1,31 +1,25 @@
 <?php namespace EugeneErg\Preparer\SQL\Functions\Traits;
 
 use EugeneErg\Preparer\SQL\Functions\Action;
-use EugeneErg\Preparer\SQL\Query\QueryInterface;
+use EugeneErg\Preparer\SQL\Query\AbstractSource;
 use EugeneErg\Preparer\ValueIndexService;
 use ReflectionObject;
 use ReflectionMethod;
 
 trait FunctionTrait
 {
-    /**
-     * @var FunctionTrait[]
-     */
+    /* @var FunctionTrait[] */
     private array $children = [];
-    /**
-     * @var Action[]
-     */
+    /* @var Action[] */
     private array $actions = [];
     private ValueIndexService $valueIndexService;
-    private QueryInterface $query;
-    /**
-     * @var string[]
-     */
+    private AbstractSource $source;
+    /* @var string[] */
     private array $methods = [];
 
-    private function __construct(QueryInterface $query)
+    private function __construct(AbstractSource $source)
     {
-        $this->query = $query;
+        $this->source = $source;
         $this->valueIndexService = new ValueIndexService();
         $methods = (new ReflectionObject($this))->getMethods(ReflectionMethod::IS_PUBLIC);
 
@@ -47,7 +41,7 @@ trait FunctionTrait
 
         if (!isset($this->children[$index])) {
             /** @var FunctionTrait $result */
-            $result = new $class($this->query);
+            $result = new $class($this->data);
             $result->actions = $this->actions;
             $result->actions[] = new Action($action, $name, $arguments);
             $this->children[$index] = $result;
@@ -64,8 +58,8 @@ trait FunctionTrait
         return $this->actions;
     }
 
-    public function getQuery(): QueryInterface
+    public function getSource(): AbstractSource
     {
-        return $this->query;
+        return $this->source;
     }
 }

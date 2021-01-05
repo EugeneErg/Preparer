@@ -3,10 +3,10 @@ error_reporting(E_ALL);
 (require __DIR__ . '/vendor/autoload.php')->addPsr4('EugeneErg\\Preparer\\', __DIR__ . '/src/');
 
 use EugeneErg\Preparer\SQL\Query\SelectQuery;
-use EugeneErg\Preparer\SQL\Query\ValuesQuery;
+use EugeneErg\Preparer\SQL\Query\Values;
 use EugeneErg\Preparer\SQL\Raw\Raw;
 
-$value = new ValuesQuery([
+$value = new Values([
     'id' => 12,
     'is_new' => false,
 ], [

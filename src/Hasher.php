@@ -27,11 +27,11 @@ final class Hasher
 
     /**
      * @param string $hash
-     * @return object|null
+     * @return object
      */
-    public function getObject(string $hash): ?object
+    public function getObject(string $hash): object
     {
-        return self::$objects[$hash] ?? null;
+        return self::$objects[$hash];
     }
 
     /**

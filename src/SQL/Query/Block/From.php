@@ -1,6 +1,6 @@
 <?php namespace EugeneErg\Preparer\SQL\Query\Block;
 
-use EugeneErg\Preparer\SQL\Query\SubQueryInterface;
+use EugeneErg\Preparer\SQL\Query\AbstractSource;
 
 class From
 {
@@ -10,18 +10,18 @@ class From
     public const TYPE_INNER = 'inner';
     public const TYPE_OUTER = 'outer';
 
-    private SubQueryInterface $query;
+    private AbstractSource $data;
     private ?string $type;
 
-    public function __construct(SubQueryInterface $query, string $type = null)
+    public function __construct(AbstractSource $data, string $type = null)
     {
-        $this->query = $query;
+        $this->data = $data;
         $this->type = $type;
     }
 
-    public function getQuery(): SubQueryInterface
+    public function getData(): AbstractSource
     {
-        return $this->query;
+        return $this->data;
     }
 
     public function getType(): ?string

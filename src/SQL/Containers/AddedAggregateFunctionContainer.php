@@ -1,14 +1,14 @@
 <?php namespace EugeneErg\Preparer\SQL\Containers;
 
-use EugeneErg\Preparer\SQL\Query\ModelQueryInterface;
+use EugeneErg\Preparer\SQL\Query\AbstractModel;
 
 class AddedAggregateFunctionContainer extends AbstractAggregateFunctionContainer
 {
-    private ModelQueryInterface $addedQuery;
+    private AbstractModel $model;
 
-    public function __construct(ModelQueryInterface $addedQuery)
+    public function __construct(AbstractModel $model)
     {
-        $this->addedQuery = $addedQuery;
+        $this->model = $model;
     }
 
     public function count(): self
@@ -16,8 +16,8 @@ class AddedAggregateFunctionContainer extends AbstractAggregateFunctionContainer
         return $this->createNewByFunction('count');
     }
 
-    public function getAddedQuery(): ModelQueryInterface
+    public function getModel(): AbstractModel
     {
-        return $this->addedQuery;
+        return $this->model;
     }
 }

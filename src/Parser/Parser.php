@@ -12,7 +12,7 @@ class Parser
     private const MATCH_POSITION = 1;
 
     /**
-     * @var string[]
+     * @var PatternOption[]
      */
     private array $patterns;
     private ?string $contextTemplateClass;
@@ -51,7 +51,7 @@ class Parser
             unset($matches[0]);
 
             foreach ($this->patterns as $pattern => $option) {
-                $match = array_splice($matches, 0, $option->count);
+                $match = array_splice($matches, 0, $option->getCount());
 
                 if ($match[0][self::MATCH_STRING] !== null) {
                     $missed = $match[0][self::MATCH_POSITION] - $position;
@@ -60,7 +60,7 @@ class Parser
                         $items = array_merge($items, $this->getContextItems($query, $position, $missed));
                     }
 
-                    $items[] = $this->createItem($match,  $option->class);
+                    $items[] = $this->createItem($match,  $option->getClassName());
                     $position = $match[0][self::MATCH_POSITION] + strlen($match[0][self::MATCH_STRING]);
                 }
             }
@@ -125,10 +125,7 @@ class Parser
             '',
             $matches
         );
-        $this->patterns[$pattern] = (object) [
-            'count' => count($matches),
-            'class' => $className,
-        ];
+        $this->patterns[$pattern] = new PatternOption(count($matches), $className);
     }
 
     /**
