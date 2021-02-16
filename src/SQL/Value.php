@@ -2,10 +2,13 @@
 
 use ArrayAccess;
 use EugeneErg\Preparer\Exception\InvalidActionException;
+use EugeneErg\Preparer\SQL\Functions\Traits\ArrayFunctionTrait;
 use EugeneErg\Preparer\SQL\Query\AbstractSource;
 
 class Value extends AbstractSource implements ArrayAccess
 {
+    use ArrayFunctionTrait;
+
     /**
      * @var mixed
      */
@@ -26,30 +29,6 @@ class Value extends AbstractSource implements ArrayAccess
     public function getObject()
     {
         return $this->object;
-    }
-
-    public function __get(string $name): self
-    {
-        return $this->offsetGet($name);
-    }
-
-    /**
-     * @param string|int $name
-     * @return $this
-     */
-    public function offsetGet($name): self
-    {
-        $object = $this->object;
-
-        if (is_array($object)) {
-            $object = $object[$name];
-        } elseif (is_object($object)) {
-            $object = $object->$name;
-        } else {
-            $object = null;
-        }
-
-        return new Value($object);
     }
 
     /**

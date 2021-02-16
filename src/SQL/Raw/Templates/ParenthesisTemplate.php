@@ -17,8 +17,6 @@ class ParenthesisTemplate extends AbstractTemplate
 
     public function __construct(string $value)
     {
-        $this->isOpen = in_array($value, ['(', '{', '['], true);
-
         list($this->isOpen, $this->type) = [
             '[' => [true, self::TYPE_SQUARE],
             '(' => [true, self::TYPE_ROUND],

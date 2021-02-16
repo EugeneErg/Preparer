@@ -3,7 +3,7 @@
 use EugeneErg\Preparer\SQL\Functions\Traits\AggregateFunctionTrait;
 use EugeneErg\Preparer\ValueInterface;
 
-class NumericFunction implements ValueInterface
+class NumericFunction extends AbstractFunction implements ValueInterface
 {
     use AggregateFunctionTrait;
 }

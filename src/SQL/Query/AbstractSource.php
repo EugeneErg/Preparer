@@ -25,6 +25,6 @@ abstract class AbstractSource
 
     public function __toString(): string
     {
-        $this->hasher->getHash($this);
+        return $this->hasher->getHash($this, ':', '');
     }
 }

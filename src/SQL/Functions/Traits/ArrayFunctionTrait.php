@@ -6,8 +6,9 @@ use EugeneErg\Preparer\SQL\Functions\Traits\Methods\lengthMethod;
 trait ArrayFunctionTrait
 {
     use AggregateFunctionTrait;
-
     use lengthMethod;
+
+    protected ?string $type = 'array';
 
     /**
      * @param int|string $offset

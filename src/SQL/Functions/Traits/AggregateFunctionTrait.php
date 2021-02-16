@@ -13,5 +13,4 @@ trait AggregateFunctionTrait
 
         return $result;
     }
-
 }

@@ -4,7 +4,7 @@ error_reporting(E_ALL);
 
 use EugeneErg\Preparer\SQL\Query\SelectQuery;
 use EugeneErg\Preparer\SQL\Query\Values;
-use EugeneErg\Preparer\SQL\Raw\Raw;
+use EugeneErg\Preparer\SQL\Raw\QueryRaw;
 
 $value = new Values([
     'id' => 12,
@@ -18,7 +18,7 @@ $q = (new SelectQuery([
     'id' => $value->id,
 ]))->from($value)
     ->where($value->is_new)
-    ->where(new Raw("{$value->count()} > 1"));
+    ->where(new QueryRaw("{$value->count()} > 1"));
 
 
 

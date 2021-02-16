@@ -1,30 +1,31 @@
 <?php namespace EugeneErg\Preparer\SQL\Structures;
 
+use EugeneErg\Preparer\Collection;
 use EugeneErg\Preparer\Parser\AbstractTemplate;
 
 class Parenthesis
 {
     private string $name;
     /**
-     * @var AbstractTemplate[]
+     * @var AbstractTemplate[]|Parenthesis[]|Collection
      */
-    private array $includes;
+    private Collection $includes;
 
     /**
      * Parenthesis constructor.
      * @param string $name
-     * @param AbstractTemplate[] $includes
+     * @param AbstractTemplate[]|Parenthesis[]|Collection $includes
      */
-    public function __construct(string $name, array $includes)
+    public function __construct(string $name, Collection $includes)
     {
         $this->name = $name;
         $this->includes = $includes;
     }
 
     /**
-     * @return AbstractTemplate[]
+     * @return AbstractTemplate[]|Parenthesis[]|Collection
      */
-    public function getIncludes(): array
+    public function getIncludes(): Collection
     {
         return $this->includes;
     }

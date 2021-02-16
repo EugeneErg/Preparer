@@ -3,15 +3,22 @@
 class InsertQuery extends AbstractQuery
 {
     private array $values;
+    private Table $table;
 
-    public function __construct(array $values, int $limit = null, int $offset = 0)
+    public function __construct(Table $table, array $values, int $limit = null, int $offset = 0)
     {
         parent::__construct($limit, $offset);
         $this->values = $values;
+        $this->table = $table;
     }
 
     public function getValues(): array
     {
         return $this->values;
+    }
+
+    public function getTable(): Table
+    {
+        return $this->table;
     }
 }

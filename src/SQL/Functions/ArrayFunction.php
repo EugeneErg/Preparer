@@ -3,7 +3,7 @@
 use EugeneErg\Preparer\SQL\Functions\Traits\ArrayFunctionTrait;
 use EugeneErg\Preparer\ValueInterface;
 
-class ArrayFunction implements \ArrayAccess, ValueInterface
+class ArrayFunction extends AbstractFunction implements \ArrayAccess, ValueInterface
 {
     use ArrayFunctionTrait;
 

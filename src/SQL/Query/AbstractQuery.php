@@ -4,7 +4,9 @@ use EugeneErg\Preparer\SQL\Containers\MainAggregateFunctionContainer;
 use EugeneErg\Preparer\SQL\Functions\NotFunction;
 use EugeneErg\Preparer\SQL\Query\Block\From;
 use EugeneErg\Preparer\SQL\Query\Block\Order;
-use EugeneErg\Preparer\ValueInterface;
+use EugeneErg\Preparer\SQL\Raw\AbstractQueryRaw;
+use EugeneErg\Preparer\SQL\Raw\QueryRaw;
+use EugeneErg\Preparer\SQL\ValueInterface;
 
 /**
  * @mixin MainAggregateFunctionContainer
@@ -19,8 +21,6 @@ abstract class AbstractQuery extends AbstractSource
     private array $from = [];
     /** @var ValueInterface[] */
     private array $where = [];
-    /** @var ValueInterface[] */
-    private array $groupBy = [];
     /** @var Order[] */
     private array $orderBy = [];
 
@@ -32,30 +32,45 @@ abstract class AbstractQuery extends AbstractSource
         parent::__construct();
     }
 
-    public function from(AbstractSource $data, string $join = null): self
+    /**
+     * @param AbstractSource|AbstractQueryRaw $source
+     * @param string|null $join
+     * @return $this
+     */
+    public function from($source, string $join = null): self
     {
-        $this->from[] = new From($data, $join);
+        $this->from[] = new From(
+            $source instanceof AbstractQueryRaw
+                ? $source->toSubQuery() : $source,
+            $join
+        );
 
         return $this;
     }
 
-    public function where(ValueInterface $value): self
+    /**
+     * @param string|ValueInterface $value
+     * @return $this
+     */
+    public function where($value): self
     {
         $this->where[] = $value;
 
         return $this;
     }
 
-    public function groupBy(ValueInterface $value): self
-    {
-        $this->groupBy[] = $value;
 
-        return $this;
-    }
-
-    public function orderBy(ValueInterface $value, bool $ascDirection = true): self
+    /**
+     * @param string|ValueInterface $value
+     * @param bool $ascDirection
+     * @return $this
+     */
+    public function orderBy($value, bool $ascDirection = true): self
     {
-        $this->orderBy[] = new Order($value, $ascDirection);
+        $this->orderBy[] = new Order(
+            $value instanceof ValueInterface ? $value : new QueryRaw((string) $value),
+            $ascDirection
+        );
 
         return $this;
     }
@@ -92,14 +107,6 @@ abstract class AbstractQuery extends AbstractSource
     }
 
     /**
-     * @return ValueInterface[]
-     */
-    public function getGroupBy(): array
-    {
-        return $this->groupBy;
-    }
-
-    /**
      * @return Order[]
      */
     public function getOrderBy(): array
@@ -108,7 +115,7 @@ abstract class AbstractQuery extends AbstractSource
     }
 
     /**
-     * @return ValueInterface[]
+     * @return ValueInterface[]|string[]
      */
     public function getWhere(): array
     {
@@ -120,8 +127,6 @@ abstract class AbstractQuery extends AbstractSource
         $this->sources[] = $this;
         $this->from = [];
         $this->where = [];
-        $this->groupBy = [];
         $this->orderBy = [];
     }
 }
-

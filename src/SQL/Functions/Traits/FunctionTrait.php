@@ -16,6 +16,7 @@ trait FunctionTrait
     private AbstractSource $source;
     /* @var string[] */
     private array $methods = [];
+    protected ?string $type = null;
 
     private function __construct(AbstractSource $source)
     {
@@ -37,13 +38,13 @@ trait FunctionTrait
 
     private function getChildren(string $class, string $action, string $name, array $arguments = [])
     {
-        $index = $this->valueIndexService->getIndex($class,  $action, $name, ...$arguments);
+        $index = $this->valueIndexService->getIndex($class, $action, $name, ...$arguments);
 
         if (!isset($this->children[$index])) {
             /** @var FunctionTrait $result */
-            $result = new $class($this->data);
+            $result = new $class($this->source);
             $result->actions = $this->actions;
-            $result->actions[] = new Action($action, $name, $arguments);
+            $result->actions[] = new Action($action, $name, $this->type, $arguments);
             $this->children[$index] = $result;
         }
 

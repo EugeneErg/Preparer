@@ -123,8 +123,8 @@ final class ClassCreatorService
     public function call(callable $function, array $arguments = [])
     {
         list($class, $method) = $this->getClassMethodByCallable($function);
-
         $reflectionFunction = $this->getReflectionByCallable($function);
+
         return $reflectionFunction->invokeArgs(
             $this->convertArgumentsAccordingToParameters(
                 $arguments,
@@ -133,6 +133,70 @@ final class ClassCreatorService
                 $method
             )
         );
+    }
+
+    /**
+     * @param callable $function
+     * @param string[] $types
+     * @return bool
+     * @throws ReflectionException
+     */
+    public function isCompatible(callable $function, array $types): bool
+    {
+        $reflectionFunction = $this->getReflectionByCallable($function);
+        list($className, $methodName) = $this->getClassMethodByCallable($function);
+        $parameters = $reflectionFunction->getParameters();
+
+        foreach (array_reverse($parameters) as $number => $parameter) {
+            $name = $parameter->getName();
+            $valueType = $arguments[$name] ?? $arguments[$number] ?? null;
+            $exists = array_key_exists($name, $types) || array_key_exists($number, $types);
+
+            if (!$exists && !$parameter->isDefaultValueAvailable()) {
+                if (!$parameter->isVariadic()
+                    && !$parameter->allowsNull()
+                    && $parameter->hasType()
+                ) {
+                    $result = $this->isConvertible(
+                        'NULL',
+                        $parameter->getType()->getName(),
+                        $className,
+                        $methodName,
+                        $name
+                    );
+
+                    if (!$result) {
+                        return false;
+                    }
+                }
+            } elseif ($exists) {
+                $values = is_array($valueType) && $parameter->isVariadic() ? array_reverse($valueType) : [$valueType];
+
+                if ($parameter->hasType()) {
+                    $type = $parameter->getType()->getName();
+                } elseif ($parameter->isDefaultValueAvailable()) {
+                    $type = gettype($parameter->getDefaultValue());
+                } else {
+                    continue;
+                }
+
+                foreach ($values as $value) {
+                    $result = $this->isConvertible(
+                        $value,
+                        $type,
+                        $className,
+                        $methodName,
+                        $name
+                    );
+
+                    if (!$result) {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -163,6 +227,18 @@ final class ClassCreatorService
         return $this->functions[$functionIndex][$index];
     }
 
+    public function isConvertible(string $valueType, string $type, string $class, string $method, string $parameter): bool
+    {
+        if ($valueType === $type || is_subclass_of($valueType, $type)) {
+            return true;
+        }
+
+        $converter = $this->getPriorityConverter($type, $class, $method, $parameter, $valueType)
+            ?? $this->converterByNameSpace($valueType, $type, $class);
+
+        return $converter !== null || (class_exists($type) && in_array($valueType, ['NULL', 'array'], true));
+    }
+
     /**
      * @param mixed $value
      * @param string $type
@@ -181,7 +257,7 @@ final class ClassCreatorService
         }
 
         $converter = $this->getPriorityConverter($type, $class, $method, $parameter, $valueType)
-            ?? $this->converterByNameSpace($value, $type, $class);
+            ?? $this->converterByNameSpace($valueType, $type, $class);
 
         if ($converter === null) {
             if (class_exists($type) && $value === null || is_array($value)) {
@@ -271,18 +347,17 @@ final class ClassCreatorService
     }
 
     /**
-     * @param $value
+     * @param string $valueType
      * @param string $type
      * @param string $class
      * @return object|null
      */
-    private function converterByNameSpace($value, string $type, string $class): ?object
+    private function converterByNameSpace(string $valueType, string $type, string $class): ?object
     {
         if (!isset($this->nameSpaceTree[$type])) {
             return null;
         }
 
-        $valueType = is_object($value) ? get_class($value) : gettype($value);
         $current = $this->nameSpaceTree[$type];
         $result = $current->getValue()->converters[$valueType] ?? null;
         $routes = explode('\\', $class);

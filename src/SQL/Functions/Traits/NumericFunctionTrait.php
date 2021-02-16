@@ -6,6 +6,8 @@ trait NumericFunctionTrait
 {
     use AggregateFunctionTrait;
 
+    protected ?string $type = 'numeric';
+
     public function sum(bool $distinct = false): NotFunction
     {
         /** @var NotFunction $result */

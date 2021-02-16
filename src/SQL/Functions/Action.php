@@ -5,10 +5,12 @@ class Action
     private string $type;
     private string $name;
     private array $arguments;
+    private string $method;
 
-    public function __construct(string $type, string $name, array $arguments = [])
+    public function __construct(string $method, string $name, string $type, array $arguments = [])
     {
         $this->type = $type;
+        $this->method = $method;
         $this->name = $name;
         $this->arguments = $arguments;
     }
@@ -26,5 +28,10 @@ class Action
     public function getType(): string
     {
         return $this->type;
+    }
+
+    public function getMethod(): string
+    {
+        return $this->method;
     }
 }

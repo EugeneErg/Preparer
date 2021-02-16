@@ -4,28 +4,16 @@ use EugeneErg\Preparer\SQL\Table;
 
 class DeleteQuery extends AbstractQuery
 {
-    /**
-     * @var Table[]
-     */
-    private array $tables;
+    private Table $table;
 
-    /**
-     * DeleteQuery constructor.
-     * @param Table[] $tables
-     * @param int|null $limit
-     * @param int $offset
-     */
-    public function __construct(array $tables, int $limit = null, int $offset = 0)
+    public function __construct(Table $table, int $limit = null, int $offset = 0)
     {
         parent::__construct($limit, $offset);
-        $this->tables = $tables;
+        $this->table = $table;
     }
 
-    /**
-     * @return Table[]
-     */
-    public function getTables(): array
+    public function getTable(): Table
     {
-        return $this->tables;
+        return $this->table;
     }
 }

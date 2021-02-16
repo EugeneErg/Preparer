@@ -25,13 +25,23 @@ abstract class AbstractModel extends AbstractSource
         return $result;
     }
 
-    public function __invoke(AbstractQuery $query): self
+    /**
+     * @param AbstractQuery|Union|string ...$queries
+     * @return $this
+     */
+    public function __invoke(...$queries): self
     {
-        $hash = $query->__toString();
+        $hash = [];
+
+        foreach ($queries as $query) {
+            $hash[] = (string) $query;
+        }
+
+        $hash = implode('.', $hash);
 
         if (!isset($this->contexts[$hash])) {
             $this->contexts[$hash] = clone $this;
-            $this->contexts[$hash]->sources[] = $query;
+            $this->contexts[$hash]->sources[] = $queries;
         }
 
         return $this->contexts[$hash];

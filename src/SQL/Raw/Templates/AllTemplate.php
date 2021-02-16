@@ -2,15 +2,9 @@
 
 use EugeneErg\Preparer\Parser\AbstractTemplate;
 
-class PunctuationTemplate extends AbstractTemplate
+class AllTemplate extends AbstractTemplate
 {
-    public const TEMPLATE = ',|;|:|\\?|\\.';
-
-    public const VALUE_COMMA = ',';
-    public const VALUE_DOT = '.';
-    public const VALUE_SEMICOLON = ';';
-    public const VALUE_QUESTION = '?';
-    public const VALUE_COLON = ':';
+    public const TEMPLATE = '.*';
 
     private string $value;
 

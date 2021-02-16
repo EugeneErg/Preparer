@@ -1,14 +1,12 @@
 <?php namespace EugeneErg\Preparer\SQL\Structures;
 
+use EugeneErg\Preparer\Collection;
 use EugeneErg\Preparer\Parser\AbstractTemplate;
 
 class Command
 {
     private string $name;
-    /**
-     * @var AbstractTemplate[]|Parenthesis[]
-     */
-    private array $includes;
+    private Collection $includes;
 
     /**
      * Command constructor.
@@ -18,13 +16,10 @@ class Command
     public function __construct(string $name, array $includes)
     {
         $this->name = $name;
-        $this->includes = $includes;
+        $this->includes = new Collection($includes);
     }
 
-    /**
-     * @return AbstractTemplate[]|Parenthesis[]
-     */
-    public function getIncludes(): array
+    public function getIncludes(): Collection
     {
         return $this->includes;
     }
@@ -33,5 +28,4 @@ class Command
     {
         return $this->name;
     }
-
 }

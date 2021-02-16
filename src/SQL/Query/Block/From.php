@@ -10,18 +10,18 @@ class From
     public const TYPE_INNER = 'inner';
     public const TYPE_OUTER = 'outer';
 
-    private AbstractSource $data;
+    private AbstractSource $source;
     private ?string $type;
 
-    public function __construct(AbstractSource $data, string $type = null)
+    public function __construct(AbstractSource $source, string $type = null)
     {
-        $this->data = $data;
+        $this->source = $source;
         $this->type = $type;
     }
 
-    public function getData(): AbstractSource
+    public function getSource(): AbstractSource
     {
-        return $this->data;
+        return $this->source;
     }
 
     public function getType(): ?string

@@ -4,7 +4,7 @@ use EugeneErg\Preparer\SQL\Functions\Traits\StringFunctionTrait;
 use ArrayAccess;
 use EugeneErg\Preparer\ValueInterface;
 
-class StringFunction implements ArrayAccess, ValueInterface
+class StringFunction extends AbstractFunction implements ArrayAccess, ValueInterface
 {
     use StringFunctionTrait;
 

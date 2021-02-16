@@ -7,4 +7,6 @@ trait StringFunctionTrait
     use AggregateFunctionTrait;
 
     use lengthMethod;
+
+    protected ?string $type = 'string';
 }
