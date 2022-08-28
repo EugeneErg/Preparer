@@ -20,6 +20,9 @@ use JetBrains\PhpStorm\Pure;
 
 class SelectQuery extends AbstractQuery
 {
+    /** @var QueryTypeInterface[] */
+    private array $from = [];
+
     #[Pure] public function __construct(
         public readonly bool $distinct = false,
         public readonly ?int $limit = null,
@@ -39,21 +42,32 @@ class SelectQuery extends AbstractQuery
 
     public function orderBy(FieldTypeInterface $value, bool $desc = false): self
     {
-        return $this->call(new OrderBy($value, $desc));
+        $this->call(new OrderBy($value, $desc));
+
+        return $this;
     }
 
-    public function groupBy(FieldTypeInterface $value): self
+    public function groupBy(FieldTypeInterface ...$values): self
     {
-        return $this->call(new GroupBy($value));
+        $this->call(new GroupBy(...$values));
+
+        return $this;
     }
 
     public function having(BooleanType $value): self
     {
-        return $this->call(new Having($value));
+        $this->call(new Having($value));
+
+        return $this;
     }
 
-    public function from(QueryTypeInterface $source, JoinTypeEnum $joinType = JoinTypeEnum::Outer): self
-    {
-        return $this->call(new From($source, $joinType));
+    public function from(
+        QueryTypeInterface $source,
+        BooleanType $on = null,
+        JoinTypeEnum $joinType = JoinTypeEnum::Outer,
+    ): self {
+        $this->call(new From($source, $on, $joinType));
+
+        return $this;
     }
 }

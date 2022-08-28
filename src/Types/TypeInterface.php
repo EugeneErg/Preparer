@@ -8,6 +8,6 @@ use EugeneErg\Preparer\Collections\FunctionCollection;
 
 interface TypeInterface
 {
-    public function getMethods(): array;
+    public function getMethods(): FunctionCollection;
     public function getChildMethods(): FunctionCollection;
 }

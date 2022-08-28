@@ -8,7 +8,7 @@ use EugeneErg\Preparer\Data\Table;
 use EugeneErg\Preparer\Enums\JoinTypeEnum;
 use EugeneErg\Preparer\Functions\Query\From;
 use EugeneErg\Preparer\Functions\Query\OrderBy;
-use EugeneErg\Preparer\Returning;
+use EugeneErg\Preparer\Types\BooleanType;
 use EugeneErg\Preparer\Types\FieldTypeInterface;
 use EugeneErg\Preparer\Types\QueryTypeInterface;
 use JetBrains\PhpStorm\Pure;
@@ -43,8 +43,13 @@ class DeleteQuery extends AbstractQuery
         return $this->call(new OrderBy($value, $desc));
     }
 
-    public function join(QueryTypeInterface $source, JoinTypeEnum $joinType = JoinTypeEnum::Outer): self
-    {
-        return $this->call(new From($source, $joinType));
+    public function from(
+        QueryTypeInterface $source,
+        BooleanType $on = null,
+        JoinTypeEnum $joinType = JoinTypeEnum::Outer,
+    ): self {
+        $this->call(new From($source, $on, $joinType));
+
+        return $this;
     }
 }

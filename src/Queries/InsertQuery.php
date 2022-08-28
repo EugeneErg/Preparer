@@ -4,16 +4,21 @@ declare(strict_types=1);
 
 namespace EugeneErg\Preparer\Queries;
 
+use EugeneErg\Preparer\Collections\TypeCollection;
+use EugeneErg\Preparer\Functions\Query\From;
 use EugeneErg\Preparer\Returning;
 use EugeneErg\Preparer\Data\Table;
-use JetBrains\PhpStorm\Pure;
 
 class InsertQuery extends AbstractQuery
 {
-    #[Pure] public function __construct(
+    public readonly TypeCollection $action;
+
+    public function __construct(
         public readonly Table $table,
-        public readonly Returning $source,
+        Returning $source,
     ) {
+        $this->call(new From($source->source));
+        $this->action = $source->select;
         parent::__construct();
     }
 }

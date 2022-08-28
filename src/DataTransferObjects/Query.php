@@ -22,6 +22,7 @@ class Query
         public readonly ?TypeCollection $action = null,
         public readonly ?BooleanType $where = null,
         public readonly ?BooleanType $having = null,
+        public readonly ?BooleanType $on = null,
         public readonly ?TypeCollection $groupBy = null,
         public readonly ?FunctionCollection $orderBy = null,
         public readonly ?FromCollection $subQueries = null,

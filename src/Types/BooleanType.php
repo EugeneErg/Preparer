@@ -8,12 +8,13 @@ use EugeneErg\Preparer\Enums\AngleTypeEnum;
 use EugeneErg\Preparer\Enums\NumericTypeEnum;
 use EugeneErg\Preparer\Functions\AbstractFunction;
 use EugeneErg\Preparer\Functions\Angle\ToAngle;
+use EugeneErg\Preparer\Functions\Boolean\AndFunction;
 use EugeneErg\Preparer\Functions\Numeric\ToNumeric;
 use EugeneErg\Preparer\Functions\String\ToString;
 
 class BooleanType extends AbstractFieldType implements FieldTypeInterface
 {
-    /** @return NumericType|AngleType|StringType */
+    /** @return NumericType|AngleType|StringType|BooleanType */
     protected function call(AbstractFunction $function): TypeInterface
     {
         return parent::call($function);
@@ -39,5 +40,10 @@ class BooleanType extends AbstractFieldType implements FieldTypeInterface
     public function toString(): StringType
     {
         return $this->call(new ToString());
+    }
+
+    public function and(BooleanType $value): self
+    {
+        return $this->call(new AndFunction($value));
     }
 }

@@ -18,11 +18,9 @@ abstract class AbstractFunction
 
     public function __invoke(TypeInterface $type): TypeInterface
     {
-        $methods = $type->getMethods();
-        $methods[] = $this;
         $class = $this->getType($type);
 
-        return new $class($methods);
+        return new $class($type->getMethods()->set($this));
     }
 
     public function equals(self $function): bool

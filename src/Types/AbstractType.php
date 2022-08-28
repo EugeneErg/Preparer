@@ -10,12 +10,14 @@ use EugeneErg\Preparer\Functions\AbstractFunction;
 abstract class AbstractType implements TypeInterface
 {
     private array $childMethods = [];
+    private readonly FunctionCollection $methods;
 
-    public function __construct(private readonly array $methods = [])
+    public function __construct(FunctionCollection $methods = null)
     {
+        $this->methods = $methods ?? new FunctionCollection();
     }
 
-    public function getMethods(): array
+    public function getMethods(): FunctionCollection
     {
         return $this->methods;
     }
