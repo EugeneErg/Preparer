@@ -15,7 +15,6 @@ use EugeneErg\Preparer\DataTransferObjects\Query;
 use EugeneErg\Preparer\Enums\JoinTypeEnum;
 use EugeneErg\Preparer\Enums\QueryTypeEnum;
 use EugeneErg\Preparer\Functions\AbstractFunction;
-use EugeneErg\Preparer\Functions\Query\AbstractQueryFunction;
 use EugeneErg\Preparer\Functions\Query\Context;
 use EugeneErg\Preparer\Functions\Query\From;
 use EugeneErg\Preparer\Functions\Query\GroupBy;
@@ -30,7 +29,6 @@ use EugeneErg\Preparer\Queries\UpdateQuery;
 use EugeneErg\Preparer\Types\BooleanType;
 use EugeneErg\Preparer\Types\FieldTypeInterface;
 use EugeneErg\Preparer\Types\QueryTypeInterface;
-use JetBrains\PhpStorm\Pure;
 
 class Builder
 {
@@ -87,15 +85,12 @@ class Builder
         BooleanType $on = null,
     ): array {
         $hash = spl_object_hash($query);
-        $resultHashes = [];
 
         if (isset($returning[$hash])) {
-            $resultHashes[] = $hash;
             $select = TypeCollection::fromMerge($select, $returning[$hash]->select);
             $returning = $returning->unset($hash);
         }
 
-        /** @var AbstractFunction[][] $functions */
         $functions = $query->getChildMethods()->reduce(
             function (array $init, AbstractFunction $function): array {
                 $init[self::MAP[get_class($function)]][] = $function;
@@ -109,47 +104,39 @@ class Builder
             $functions[$name] = new FunctionCollection($function);
         }
 
-        $from = $functions['from'] ?? null;
+        /** @var FunctionCollection[] $functions */
+        $from = $functions['from'] ?? new FunctionCollection();
         $limit = $query->limit ?? null;
         $offset = $query->offset ?? 0;
         $distinct = $query->distinct ?? false;
         $action = $query->action ?? null;
-
-        if ($query instanceof SelectQuery) {
-            $type = QueryTypeEnum::Select;
-        } elseif ($query instanceof DeleteQuery) {
-            $type = QueryTypeEnum::Delete;
-        } elseif ($query instanceof UpdateQuery) {
-            $type = QueryTypeEnum::Update;
-        } elseif ($query instanceof InsertQuery) {
-            $type = QueryTypeEnum::Insert;
-        }
+        $type = $query->type;
 
         foreach ($functions as $subFunction) {
             $returning = $this->getSelectFromFunctions($subFunction, $query, $returning);
         }
 
-        $subReturning = $this->getSelectFromIterable($select, $query, $returning);
+        $returning = $this->getSelectFromIterable($select, $query, $returning);
         $subQueries = [];
 
-        /** @var From $fromFunction */
-        foreach ($from ?? [] as $fromFunction) {
-            $hash = spl_object_hash($fromFunction->source);
-            [$subQuery, $hashes] = $this->buildWithJointType(
-                $fromFunction->source,
-                $returning[$hash]->select ?? null,
-                $subReturning,
-                $fromFunction->joinType,
-                $fromFunction->on,
-            );
-            $subQueries[] = $subQuery;
-
-            foreach ($hashes as $hash) {
-                if (isset($returning[$hash])) {
-                    $resultHashes[] = $hash;
+        foreach ([true, false] as $isCorrelate) {
+            /** @var From $fromFunction */
+            foreach ($isCorrelate ? $from->reverse() : $from as $fromFunction) {
+                if (
+                    $isCorrelate === (
+                        $fromFunction->joinType === JoinTypeEnum::Correlate
+                        && $fromFunction instanceof AbstractQuery
+                    )
+                ) {
+                    $hash = spl_object_hash($fromFunction->source);
+                    [$subQueries[], $returning] = $this->buildWithJointType(
+                        $fromFunction->source,
+                        $returning[$hash]->select ?? new TypeCollection(),
+                        $returning,
+                        $fromFunction->joinType,
+                        $fromFunction->on,
+                    );
                 }
-
-                $subReturning = $subReturning->unset($hash);
             }
         }
 
@@ -168,7 +155,7 @@ class Builder
             $limit,
             $offset,
             $distinct,
-        ), $resultHashes];
+        ), $returning];
     }
 
     private function buildFromData(
@@ -183,11 +170,10 @@ class Builder
         }
 
         $hash = spl_object_hash($query);
-        $resultHashes = [];
 
         if (isset($returning[$hash])) {
-            $resultHashes[] = $hash;
             $select = TypeCollection::fromMerge($select, $returning[$hash]->select);
+            $returning->unset($hash);
         }
 
         return [new Query(
@@ -196,7 +182,7 @@ class Builder
             $select,
             $query,
             on: $on,
-        ), $resultHashes];
+        ), $returning];
     }
 
     private function buildFromUnion(
@@ -207,10 +193,8 @@ class Builder
         BooleanType $on = null,
     ): array {
         $hash = spl_object_hash($query);
-        $resultHashes = [];
 
         if (isset($returning[$hash])) {
-            $resultHashes[] = $hash;
             $select = TypeCollection::fromMerge($select, $returning[$hash]->select);
             $returning = $returning->unset($hash);
         }
@@ -219,20 +203,11 @@ class Builder
         $subQueries = [];
 
         foreach ($query->sources as $source) {
-            [$subQuery, $hashes] = $this->buildWithJointType(
+            [$subQueries[], $returning] = $this->buildWithJointType(
                 $source->source,
                 $source->select,
                 $subReturning,
             );
-            $subQueries[] = $subQuery;
-
-            foreach ($hashes as $hash) {
-                if (isset($returning[$hash])) {
-                    $resultHashes[] = $hash;
-                }
-
-                $subReturning = $subReturning->unset($hash);
-            }
         }
 
         return [new Query(
@@ -243,7 +218,7 @@ class Builder
             on: $on,
             subQueries: new FromCollection($subQueries),
             distinct: $query->distinct,
-        ), $resultHashes];
+        ), $returning];
     }
 
     private function getSelectFromValue(

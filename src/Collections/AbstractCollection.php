@@ -80,7 +80,7 @@ abstract class AbstractCollection implements \IteratorAggregate, \ArrayAccess
     public static function fromMerge(self ...$collections): static
     {
         return new static(
-            ...array_merge(array_map(fn (self $collection): array => $collection->toArray(), $collections)),
+            ...array_merge(self::collectionsToArrays(...$collections)),
         );
     }
 
@@ -112,5 +112,43 @@ abstract class AbstractCollection implements \IteratorAggregate, \ArrayAccess
     public function isEmpty(): bool
     {
         return count($this->items) === 0;
+    }
+
+    public static function fromDiff(bool|callable $value, bool|callable $key, self ...$collections): static
+    {
+        $arguments = self::collectionsToArrays(...$collections);
+
+        if ($value === true) {
+            $value = fn (mixed $valueA, mixed $valueB): int => $valueA <=> $valueB;
+        }
+
+        if (is_callable($value)) {
+            $arguments[] = $value;
+        }
+
+        if (is_callable($key)) {
+            $arguments[] = $key;
+        }
+
+        $method = implode('_', [
+            'array',
+            (is_callable($value) ? 'u' : '') . 'diff',
+            (is_callable($key) ? 'u' : '') . ($key === false ? '' : ($value === false ? 'key' : 'assoc')),
+        ]);
+
+        return new static($method(...$arguments));
+    }
+
+    public function reverse(): self
+    {
+        $result = clone $this;
+        $result->items = array_reverse($result->items);
+
+        return $result;
+    }
+
+    private static function collectionsToArrays(self ...$collections): array
+    {
+        return array_map(fn (self $collection): array => $collection->toArray(), $collections);
     }
 }

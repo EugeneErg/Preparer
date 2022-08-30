@@ -6,6 +6,7 @@ namespace EugeneErg\Preparer\Queries;
 
 use EugeneErg\Preparer\Collections\TypeCollection;
 use EugeneErg\Preparer\Enums\JoinTypeEnum;
+use EugeneErg\Preparer\Enums\QueryTypeEnum;
 use EugeneErg\Preparer\Functions\Aggregate\Count;
 use EugeneErg\Preparer\Functions\Query\From;
 use EugeneErg\Preparer\Functions\Query\GroupBy;
@@ -16,19 +17,18 @@ use EugeneErg\Preparer\Types\BooleanType;
 use EugeneErg\Preparer\Types\CountableTypeInterface;
 use EugeneErg\Preparer\Types\FieldTypeInterface;
 use EugeneErg\Preparer\Types\QueryTypeInterface;
-use JetBrains\PhpStorm\Pure;
 
 class SelectQuery extends AbstractQuery
 {
     /** @var QueryTypeInterface[] */
     private array $from = [];
 
-    #[Pure] public function __construct(
+    public function __construct(
         public readonly bool $distinct = false,
         public readonly ?int $limit = null,
         public readonly int $offset = 0,
     ) {
-        parent::__construct();
+        parent::__construct(QueryTypeEnum::Select);
     }
 
     public function count(

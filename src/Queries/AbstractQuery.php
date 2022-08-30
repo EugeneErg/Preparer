@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace EugeneErg\Preparer\Queries;
 
 use EugeneErg\Preparer\Collections\FunctionCollection;
+use EugeneErg\Preparer\Enums\QueryTypeEnum;
 use EugeneErg\Preparer\Functions\AbstractFunction;
 use EugeneErg\Preparer\Functions\Query\Context;
 use EugeneErg\Preparer\Functions\Query\Where;
@@ -17,7 +18,7 @@ use EugeneErg\Preparer\Types\TypeInterface;
 
 abstract class AbstractQuery extends AbstractType implements CountableTypeInterface, QueryTypeInterface
 {
-    public function __construct()
+    public function __construct(public readonly QueryTypeEnum $type)
     {
         parent::__construct(new FunctionCollection([(new Context($this))($this)]));
     }

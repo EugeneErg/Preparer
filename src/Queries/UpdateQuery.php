@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace EugeneErg\Preparer\Queries;
 
 use EugeneErg\Preparer\Collections\TypeCollection;
+use EugeneErg\Preparer\Enums\QueryTypeEnum;
 use EugeneErg\Preparer\Functions\Query\From;
 use EugeneErg\Preparer\Functions\Query\OrderBy;
 use EugeneErg\Preparer\Returning;
@@ -23,7 +24,7 @@ class UpdateQuery extends AbstractQuery
     ) {
         $this->call(new From($source->source));
         $this->action = $source->select;
-        parent::__construct();
+        parent::__construct(QueryTypeEnum::Update);
     }
 
     public function orderBy(FieldTypeInterface $value, bool $desc = false): self
