@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace EugeneErg\Preparer\DataTransferObjects;
 
-use EugeneErg\Preparer\Collections\TypeCollection;
-use EugeneErg\Preparer\Types\QueryTypeInterface;
+use EugeneErg\Preparer\Collections\TreeCollection;
+use EugeneErg\Preparer\Types\FieldTypeInterface;
 
-class Select
+final class Select
 {
-    public function __construct(public readonly QueryTypeInterface $context, public readonly TypeCollection $fields)
-    {
+    public function __construct(
+        public readonly TreeCollection $path,
+        public readonly FieldTypeInterface $field,
+    ) {
     }
 }

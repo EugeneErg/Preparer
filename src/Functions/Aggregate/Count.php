@@ -11,8 +11,8 @@ use EugeneErg\Preparer\Types\CountableTypeInterface;
 class Count extends AbstractAggregateFunction
 {
     public function __construct(
-        public readonly CountableTypeInterface $value,
-        public readonly bool $distinct = false,
+        public          readonly CountableTypeInterface $value,
+        public          readonly bool $distinct = false,
         ?TypeCollection $partitionBy = null,
         ?TypeCollection $orderBy = null,
     ) {

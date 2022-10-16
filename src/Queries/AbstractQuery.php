@@ -7,7 +7,6 @@ namespace EugeneErg\Preparer\Queries;
 use EugeneErg\Preparer\Collections\FunctionCollection;
 use EugeneErg\Preparer\Enums\QueryTypeEnum;
 use EugeneErg\Preparer\Functions\AbstractFunction;
-use EugeneErg\Preparer\Functions\Query\Context;
 use EugeneErg\Preparer\Functions\Query\Where;
 use EugeneErg\Preparer\Types\AbstractType;
 use EugeneErg\Preparer\Types\AggregateType;
@@ -20,7 +19,7 @@ abstract class AbstractQuery extends AbstractType implements CountableTypeInterf
 {
     public function __construct(public readonly QueryTypeEnum $type)
     {
-        parent::__construct(new FunctionCollection([(new Context($this))($this)]));
+        parent::__construct();
     }
 
     public function where(BooleanType $value): self
@@ -34,5 +33,10 @@ abstract class AbstractQuery extends AbstractType implements CountableTypeInterf
     protected function call(AbstractFunction $function): TypeInterface
     {
         return parent::call($function);
+    }
+
+    public function __toString(): string
+    {
+        return spl_object_hash($this);
     }
 }

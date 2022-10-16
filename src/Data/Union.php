@@ -4,17 +4,16 @@ declare(strict_types=1);
 
 namespace EugeneErg\Preparer\Data;
 
+use EugeneErg\Preparer\Collections\ReturningCollection;
 use EugeneErg\Preparer\Returning;
-use JetBrains\PhpStorm\Pure;
 
 class Union extends AbstractData
 {
-    /** @var Returning[] */
-    public readonly array $sources;
+    public readonly ReturningCollection $sources;
 
-    #[Pure] public function __construct(public readonly bool $distinct = false, Returning ...$sources)
+    public function __construct(public readonly bool $distinct = false, Returning ...$sources)
     {
-        $this->sources = $sources;
+        $this->sources = new ReturningCollection($sources);
         parent::__construct();
     }
 }

@@ -22,15 +22,9 @@ class GetField extends AbstractFunction
     protected function getType(TypeInterface $type): string
     {
         return match ($this->type) {
-            TypeEnum::Float,
-            TypeEnum::Decimal,
-            TypeEnum::Integer => NumericType::class,
-            TypeEnum::DecimalRadians,
-            TypeEnum::DecimalDegrees,
-            TypeEnum::FloatRadians,
-            TypeEnum::FloatDegrees,
-            TypeEnum::IntegerRadians,
-            TypeEnum::IntegerDegrees => AngleType::class,
+            TypeEnum::Numeric => NumericType::class,
+            TypeEnum::Radians,
+            TypeEnum::Degrees => AngleType::class,
             TypeEnum::Boolean => BooleanType::class,
             TypeEnum::Object => ObjectType::class,
             TypeEnum::String => StringType::class,

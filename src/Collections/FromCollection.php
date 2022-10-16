@@ -6,7 +6,7 @@ namespace EugeneErg\Preparer\Collections;
 
 use EugeneErg\Preparer\Functions\Query\From;
 
-class FromCollection extends AbstractCollection
+class FromCollection extends AbstractImmutableCollection
 {
     protected const ITEM_TYPE = From::class;
 }

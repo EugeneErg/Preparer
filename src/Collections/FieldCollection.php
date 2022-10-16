@@ -6,11 +6,7 @@ namespace EugeneErg\Preparer\Collections;
 
 use EugeneErg\Preparer\Types\FieldTypeInterface;
 
-/**
- * @method FieldTypeInterface offsetGet(int|string $offset)
- * @method FieldTypeInterface[] getIterator()
- */
-class TypeCollection extends AbstractImmutableCollection
+final class FieldCollection extends AbstractImmutableCollection
 {
     protected const ITEM_TYPE = FieldTypeInterface::class;
 }

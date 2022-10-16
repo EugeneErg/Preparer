@@ -6,11 +6,7 @@ namespace EugeneErg\Preparer\Collections;
 
 use EugeneErg\Preparer\Returning;
 
-/**
- * @method Returning[] getIterator()
- * @method Returning offsetGet(int|string $offset)
- */
-class ReturningCollection extends AbstractImmutableCollection
+class MutableReturningCollection extends AbstractCollection
 {
     protected const ITEM_TYPE = Returning::class;
 }

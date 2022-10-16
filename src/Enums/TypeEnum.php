@@ -6,15 +6,11 @@ namespace EugeneErg\Preparer\Enums;
 
 enum TypeEnum: string
 {
-    case Float = 'float';
+    case Numeric = 'numeric';
     case Integer = 'integer';
     case Decimal = 'decimal';
-    case FloatDegrees = 'float_degrees';
-    case FloatRadians = 'float_radians';
-    case IntegerDegrees = 'integer_degrees';
-    case IntegerRadians = 'integer_radians';
-    case DecimalDegrees = 'decimal_degrees';
-    case DecimalRadians = 'decimal_radians';
+    case Degrees = 'degrees';
+    case Radians = 'radians';
     case String = 'string';
     case Boolean = 'boolean';
     case Object = 'object';
