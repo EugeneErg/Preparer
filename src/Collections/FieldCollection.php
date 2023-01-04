@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace EugeneErg\Preparer\Collections;
 
+use EugeneErg\Collections\ObjectCollection;
 use EugeneErg\Preparer\Types\FieldTypeInterface;
 
-final class FieldCollection extends AbstractImmutableCollection
+/**
+ * @method FieldTypeInterface[] getIterator()
+ */
+final class FieldCollection extends ObjectCollection
 {
     protected const ITEM_TYPE = FieldTypeInterface::class;
 }

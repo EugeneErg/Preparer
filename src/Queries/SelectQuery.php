@@ -20,9 +20,6 @@ use EugeneErg\Preparer\Types\QueryTypeInterface;
 
 class SelectQuery extends AbstractQuery
 {
-    /** @var QueryTypeInterface[] */
-    private array $from = [];
-
     public function __construct(
         public readonly bool $distinct = false,
         public readonly ?int $limit = null,
@@ -37,7 +34,7 @@ class SelectQuery extends AbstractQuery
         ?TypeCollection $partitionBy = null,
         ?TypeCollection $orderBy = null,
     ): AggregateType {
-        return $this->call(new Count($value ?? $this, $distinct, $partitionBy, $orderBy));
+        return $this->call(new Count($this, $value ?? $this, $distinct, $partitionBy, $orderBy));
     }
 
     public function orderBy(FieldTypeInterface $value, bool $desc = false): self

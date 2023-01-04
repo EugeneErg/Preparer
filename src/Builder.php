@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace EugeneErg\Preparer;
 
-use EugeneErg\Preparer\Collections\AbstractCollection;
-use EugeneErg\Preparer\Collections\AbstractImmutableCollection;
 use EugeneErg\Preparer\Collections\FromCollection;
 use EugeneErg\Preparer\Collections\FunctionCollection;
 use EugeneErg\Preparer\Collections\MutableReturningCollection;
@@ -17,18 +15,16 @@ use EugeneErg\Preparer\Data\AbstractData;
 use EugeneErg\Preparer\Data\Union;
 use EugeneErg\Preparer\Data\Value;
 use EugeneErg\Preparer\DataTransferObjects\Query;
-use EugeneErg\Preparer\DataTransferObjects\Select;
 use EugeneErg\Preparer\Enums\JoinTypeEnum;
 use EugeneErg\Preparer\Enums\QueryTypeEnum;
 use EugeneErg\Preparer\Functions\AbstractFunction;
-use EugeneErg\Preparer\Functions\Aggregate\AbstractAggregateFunction;
-use EugeneErg\Preparer\Functions\Query\Context;
 use EugeneErg\Preparer\Functions\Query\From;
 use EugeneErg\Preparer\Functions\Query\GroupBy;
 use EugeneErg\Preparer\Functions\Query\Having;
 use EugeneErg\Preparer\Functions\Query\OrderBy;
 use EugeneErg\Preparer\Functions\Query\Where;
 use EugeneErg\Preparer\Queries\AbstractQuery;
+use EugeneErg\Preparer\Services\TreeService;
 use EugeneErg\Preparer\Types\BooleanType;
 use EugeneErg\Preparer\Types\FieldTypeInterface;
 use EugeneErg\Preparer\Types\QueryTypeInterface;
@@ -45,62 +41,30 @@ class Builder
         From::class => 'from',
     ];
 
+    public function __construct(private readonly TreeService $treeService)
+    {
+    }
+
+    /** Выполнит запрос и вернет необходимые данные */
     public function build(Returning $returning): Query
     {
-        $structure = $this->getQueryStructure($returning->source);
+        $structure = $this->treeService->getQueryStructure($returning->source);
         $newReturning = $this->createReturning($returning, $structure);
-
 
         [$result, $returning] = $this->buildWithJointType(
             $returning->source,
             $returning->select,
-            $this->getQueryStructure($returning->source),
+            $structure,
             new MutableReturningCollection(),
         );
 
         return $result;
     }
 
+    /** Выполнит запрос, не возвращая никаких данных */
     public function buildQuery(AbstractQuery $query): Query
     {
         return $this->build(new Returning(new TypeCollection(), $query));
-    }
-
-    private function getQueryStructure(QueryTypeInterface $query): TreeCollection
-    {
-        $result = [];
-        $this->createTree($query, $result);
-
-        return new TreeCollection($result);
-    }
-
-    private function createTree(QueryTypeInterface $query, array &$trees, Tree $parent = null): Tree
-    {
-        $result = new Tree($query, $parent);
-        $hash = spl_object_hash($result);
-
-        if (isset($trees[$hash])) {
-            throw new \LogicException('The same subquery cannot be reused in the same query.');
-        }
-
-        $trees[$hash] = $result;
-
-        if ($query instanceof AbstractQuery) {
-            $result->children = TreeCollection::fromMap(
-                fn (From $from): Tree => $this->createTree($from->source, $trees,  $result),
-                $query->getChildMethods()
-                    ->filter(fn (AbstractFunction $function): bool => $function instanceof From),
-            );
-        } elseif ($query instanceof Union) {
-            $result->children = TreeCollection::fromMap(
-                fn (Returning $returning): Tree => $this->createTree($returning->source, $trees, $result),
-                $query->sources,
-            );
-        } else {
-            $result->children = new TreeCollection();
-        }
-
-        return $result;
     }
 
     private function createReturning(
@@ -110,8 +74,8 @@ class Builder
         $hash = spl_object_hash($returning->source);
         $result = [$hash => $returning];
 
-        foreach ($returning->select as $item) {
-            $this->differentiate($item, $returning->source, $structure);
+        foreach ($returning->select as $alias => $item) {
+            $this->distinguish($item, $returning->source, $structure);
 
         }
     }
@@ -280,8 +244,8 @@ class Builder
     }
 
     private function getSelectFromValue(
-        FieldTypeInterface  $value,
-        QueryTypeInterface  $query,
+        FieldTypeInterface $value,
+        QueryTypeInterface $query,
         ReturningCollection $subSelect,
     ): ReturningCollection {
         $methods = $value->getMethods();
@@ -347,13 +311,13 @@ class Builder
         );
     }
 
-    private function differentiate(
+    private function distinguish(
         FieldTypeInterface $item,
         QueryTypeInterface $source,
         TreeCollection $structure,
     ) {
-        /** @var Context $context */
-        $context = $item->getMethods()->first();
+
+        $context = $item->getMethods()->first()->context;
         $from = $context->value instanceof AbstractData
             ? $structure[spl_object_hash($context->value)]->parent?->query
             : $context->value;

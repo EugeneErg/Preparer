@@ -18,7 +18,7 @@ class StringType extends AbstractFieldType
         ?int $digitsCount = null,
         ?int $accuracy = null,
     ): AngleType {
-        return $this->call(new ToAngle($type, $numericType, $digitsCount, $accuracy));
+        return $this->call(new ToAngle($this, $type, $numericType, $digitsCount, $accuracy));
     }
 
     public function toNumeric(

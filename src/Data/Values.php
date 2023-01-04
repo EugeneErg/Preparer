@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace EugeneErg\Preparer\Data;
 
-class Values extends AbstractData
+class Values extends PreparerValues
 {
     /** @var Value[] */
     public readonly array $values;

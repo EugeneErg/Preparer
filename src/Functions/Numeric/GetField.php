@@ -12,16 +12,23 @@ use EugeneErg\Preparer\Types\NumericType;
 use EugeneErg\Preparer\Types\ObjectType;
 use EugeneErg\Preparer\Types\StringType;
 use EugeneErg\Preparer\Types\TypeInterface;
+use JetBrains\PhpStorm\Pure;
 
 class GetField extends AbstractFunction
 {
-    public function __construct(public readonly TypeEnum $type, public readonly string $field)
-    {
+    #[Pure] public function __construct(
+        TypeInterface $context,
+        public readonly TypeEnum $type,
+        public readonly string $field,
+    ) {
+        parent::__construct($context);
     }
 
-    protected function getType(TypeInterface $type): string
+    protected function getType(): string
     {
         return match ($this->type) {
+            TypeEnum::Integer,
+            TypeEnum::Decimal,
             TypeEnum::Numeric => NumericType::class,
             TypeEnum::Radians,
             TypeEnum::Degrees => AngleType::class,

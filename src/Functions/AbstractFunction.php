@@ -10,21 +10,25 @@ abstract class AbstractFunction
 {
     protected const RETURN_TYPE = null;
 
-    /** @return TypeInterface */
-    protected function getType(TypeInterface $type): string
+    public function __construct(public readonly TypeInterface $context)
     {
-        return static::RETURN_TYPE ?? get_class($type);
     }
 
-    public function __invoke(TypeInterface $type): TypeInterface
+    /** @return class-string<TypeInterface> */
+    protected function getType(): string
     {
-        $class = $this->getType($type);
+        return static::RETURN_TYPE ?? get_class($this->context);
+    }
 
-        return new $class($type->getMethods()->set($this));
+    public function __invoke(): TypeInterface
+    {
+        $class = $this->getType();
+
+        return new $class($this->context->getMethods()->set($this));
     }
 
     public function equals(self $function): bool
     {
-        return get_class($function) === static::class;
+        return get_class($function) === static::class && $function->context === $this->context;
     }
 }

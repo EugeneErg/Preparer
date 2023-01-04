@@ -1,14 +1,12 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace EugeneErg\Preparer\Collections;
 
-final class Matrix extends AbstractImmutableCollection
+use EugeneErg\Collections\CollectionCollection;
+
+final class Matrix extends CollectionCollection
 {
     protected const ITEM_TYPE = ConnectionCollection::class;
-
-    public function offsetGet($offset): mixed
-    {
-
-        return parent::offsetGet($offset);
-    }
 }

@@ -35,28 +35,28 @@ class AngleType extends AbstractFieldType implements MathTypeInterface
     /** @param static $value */
     public function plus(MathTypeInterface $value): self
     {
-        return $this->call(new Plus($value));
+        return $this->call(new Plus($this, $value));
     }
 
     /** @param static $value */
     public function minus(MathTypeInterface $value): self
     {
-        return $this->call(new Minus($value));
+        return $this->call(new Minus($this, $value));
     }
 
     public function times(NumericType $value): self
     {
-        return $this->call(new Times($value));
+        return $this->call(new Times($this, $value));
     }
 
     public function divided(NumericType $value, ?RoundTypeEnum $roundType = null): self
     {
-        return $this->call(new Divided($value, $roundType));
+        return $this->call(new Divided($this, $value, $roundType));
     }
 
     public function modulo(NumericType $value): self
     {
-        return $this->call(new Modulo($value));
+        return $this->call(new Modulo($this, $value));
     }
 
     public function absolute(): self
@@ -95,7 +95,7 @@ class AngleType extends AbstractFieldType implements MathTypeInterface
         ?int $digitsCount = null,
         ?int $accuracy = null,
     ): AngleType {
-        return $this->call(new ToAngle($type, $numericType, $digitsCount, $accuracy));
+        return $this->call(new ToAngle($this, $type, $numericType, $digitsCount, $accuracy));
     }
 
     public function toNumeric(

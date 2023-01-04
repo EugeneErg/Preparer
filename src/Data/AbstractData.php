@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace EugeneErg\Preparer\Data;
 
-use EugeneErg\Preparer\Collections\FunctionCollection;
 use EugeneErg\Preparer\Enums\TypeEnum;
 use EugeneErg\Preparer\Functions\Numeric\GetField;
-use EugeneErg\Preparer\Functions\Query\Context;
 use EugeneErg\Preparer\Types\AbstractDataType;
 use EugeneErg\Preparer\Types\FieldTypeInterface;
 use EugeneErg\Preparer\Types\QueryTypeInterface;
@@ -16,11 +14,6 @@ abstract class AbstractData extends AbstractDataType implements QueryTypeInterfa
 {
     /** @var TypeEnum[] */
     protected array $fields = [];
-
-    public function __construct()
-    {
-        parent::__construct();
-    }
 
     public function __get(string $field): FieldTypeInterface
     {

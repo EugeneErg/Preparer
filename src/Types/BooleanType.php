@@ -34,7 +34,7 @@ class BooleanType extends AbstractFieldType implements FieldTypeInterface
         ?int $digitsCount = null,
         ?int $accuracy = null,
     ): AngleType {
-        return $this->call(new ToAngle($type, $numericType, $digitsCount, $accuracy));
+        return $this->call(new ToAngle($this, $type, $numericType, $digitsCount, $accuracy));
     }
 
     public function toString(): StringType
@@ -44,6 +44,6 @@ class BooleanType extends AbstractFieldType implements FieldTypeInterface
 
     public function and(BooleanType $value): self
     {
-        return $this->call(new AndFunction($value));
+        return $this->call(new AndFunction($this, $value));
     }
 }

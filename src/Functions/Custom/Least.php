@@ -12,8 +12,9 @@ class Least extends AbstractFunction
 {
     private readonly array $values;
 
-    public function __construct(FieldTypeInterface ...$values)
+    public function __construct(TypeInterface $context, FieldTypeInterface ...$values)
     {
+        parent::__construct($context);
         $this->values = $values;
     }
 
@@ -29,9 +30,9 @@ class Least extends AbstractFunction
             && $function->values === $this->values;
     }
 
-    public function __invoke(TypeInterface $type): TypeInterface
+    public function __invoke(): TypeInterface
     {
-        $class = get_class($type);
+        $class = get_class($this->context);
 
         foreach ($this->values as $value) {
             if (get_class($value) !== $class) {
@@ -39,6 +40,6 @@ class Least extends AbstractFunction
             }
         }
 
-        return parent::__invoke($type);
+        return parent::__invoke();
     }
 }

@@ -48,63 +48,63 @@ class NumericType extends AbstractFieldType implements MathTypeInterface
     /** @param NumericType $value */
     public function plus(MathTypeInterface $value): self
     {
-        return $this->call(new Plus($value));
+        return $this->call(new Plus($this, $value));
     }
 
     /** @param NumericType $value */
     public function minus(MathTypeInterface $value): self
     {
-        return $this->call(new Minus($value));
+        return $this->call(new Minus($this, $value));
     }
 
     public function times(NumericType $value): self
     {
-        return $this->call(new Times($value));
+        return $this->call(new Times($this, $value));
     }
 
     public function divided(NumericType $value, ?RoundTypeEnum $roundType = null): self
     {
-        return $this->call(new Divided($value, $roundType));
+        return $this->call(new Divided($this, $value, $roundType));
     }
 
     public function modulo(NumericType $value): self
     {
-        return $this->call(new Modulo($value));
+        return $this->call(new Modulo($this, $value));
     }
 
     public function power(self $value): self
     {
-        return $this->call(new Power($value));
+        return $this->call(new Power($this, $value));
     }
 
     public function root(self $value): self
     {
-        return $this->call(new Root($value));
+        return $this->call(new Root($this, $value));
     }
 
     public function bitOr(self $value): self
     {
-        return $this->call(new BitOr($value));
+        return $this->call(new BitOr($this, $value));
     }
 
     public function bitXor(self $value): self
     {
-        return $this->call(new BitXor($value));
+        return $this->call(new BitXor($this, $value));
     }
 
     public function bitAnd(self $value): self
     {
-        return $this->call(new BitAnd($value));
+        return $this->call(new BitAnd($this, $value));
     }
 
     public function leftShift(self $value): self
     {
-        return $this->call(new LeftShift($value));
+        return $this->call(new LeftShift($this, $value));
     }
 
     public function rightShift(self $value): self
     {
-        return $this->call(new RightShift($value));
+        return $this->call(new RightShift($this, $value));
     }
 
     public function log(self $base): self
@@ -114,57 +114,57 @@ class NumericType extends AbstractFieldType implements MathTypeInterface
 
     public function round(RoundTypeEnum $type = RoundTypeEnum::Nearest): self
     {
-        return $this->call(new Round($type));
+        return $this->call(new Round($this, $type));
     }
 
     public function factorial(): self
     {
-        return $this->call(new Factorial());
+        return $this->call(new Factorial($this));
     }
 
     public function absolute(): self
     {
-        return $this->call(new Absolute());
+        return $this->call(new Absolute($this));
     }
 
     public function bitNot(): self
     {
-        return $this->call(new BitNot());
+        return $this->call(new BitNot($this));
     }
 
     public function ln(): self
     {
-        return $this->call(new Ln());
+        return $this->call(new Ln($this));
     }
 
     public function exp(): self
     {
-        return $this->call(new Exp());
+        return $this->call(new Exp($this));
     }
 
     public function scale(): self
     {
-        return $this->call(new Scale());
+        return $this->call(new Scale($this));
     }
 
     public function sign(): self
     {
-        return $this->call(new Sign());
+        return $this->call(new Sign($this));
     }
 
     public function acos(AngleTypeEnum $angleType = AngleTypeEnum::Degrees): AngleType
     {
-        return $this->call(new Acos($angleType));
+        return $this->call(new Acos($this, $angleType));
     }
 
     public function asin(AngleTypeEnum $angleType = AngleTypeEnum::Degrees): AngleType
     {
-        return $this->call(new Asin($angleType));
+        return $this->call(new Asin($this, $angleType));
     }
 
     public function atan(AngleTypeEnum $angleType = AngleTypeEnum::Degrees): AngleType
     {
-        return $this->call(new Atan($angleType));
+        return $this->call(new Atan($this, $angleType));
     }
 
     public function toAngle(
@@ -173,7 +173,7 @@ class NumericType extends AbstractFieldType implements MathTypeInterface
         ?int $digitsCount = null,
         ?int $accuracy = null,
     ): AngleType {
-        return $this->call(new ToAngle($type, $numericType, $digitsCount, $accuracy));
+        return $this->call(new ToAngle($this, $type, $numericType, $digitsCount, $accuracy));
     }
 
     public function toNumeric(
@@ -186,11 +186,11 @@ class NumericType extends AbstractFieldType implements MathTypeInterface
 
     public function toString(): StringType
     {
-        return $this->call(new ToString());
+        return $this->call(new ToString($this));
     }
 
     public function toBoolean(): BooleanType
     {
-        return $this->call(new ToBoolean());
+        return $this->call(new ToBoolean($this));
     }
 }

@@ -32,8 +32,8 @@ abstract class AbstractType implements TypeInterface
             }
         }
 
-        $result = $function($this);
-        $this->childMethods[$class] = [$function, $result];
+        $result = $function();
+        $this->childMethods[$class][] = [$function, $result];
 
         return $result;
     }

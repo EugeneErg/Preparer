@@ -12,8 +12,9 @@ use EugeneErg\Preparer\Types\TypeInterface;
 
 class Minus extends AbstractFunction
 {
-    public function __construct(public readonly MathTypeInterface $value)
+    public function __construct(TypeInterface $context, public readonly MathTypeInterface $value)
     {
+        parent::__construct($context);
     }
 
     public function equals(AbstractFunction $function): bool
@@ -23,17 +24,16 @@ class Minus extends AbstractFunction
     }
 
     /**
-     * @param MathTypeInterface $type
      * @return MathTypeInterface
      */
-    public function __invoke(TypeInterface $type): TypeInterface
+    public function __invoke(): TypeInterface
     {
-        if (($this->value instanceof AngleType && get_class($this->value) !== get_class($type))
-            || ($this->value instanceof NumericType && !$type instanceof NumericType)
+        if (($this->value instanceof AngleType && get_class($this->value) !== get_class($this->context))
+            || ($this->value instanceof NumericType && !$this->context instanceof NumericType)
         ) {
             throw new \InvalidArgumentException('All arguments being compared must be of the same type.');
         }
 
-        return parent::__invoke($type);
+        return parent::__invoke();
     }
 }
