@@ -13,6 +13,11 @@ class Table extends AbstractData
         public readonly ?string $schema = null,
         public readonly ?string $base = null,
     ) {
-        parent::__construct(QueryTypeEnum::Table);
+        parent::__construct();
+    }
+
+    public function getType(): QueryTypeEnum
+    {
+        return QueryTypeEnum::Table;
     }
 }

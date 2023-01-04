@@ -35,13 +35,18 @@ class DeleteQuery extends AbstractQuery
         public readonly ?int $limit = null,
         public readonly int $offset = 0,
     ) {
-        parent::__construct(QueryTypeEnum::Delete);
+        parent::__construct();
+    }
+
+    public function getType(): QueryTypeEnum
+    {
+        return QueryTypeEnum::Delete;
     }
 
     public function orderBy(FieldTypeInterface $value, bool $desc = false): self
     {
         /** @var self $result */
-        $result = $this->call(new OrderBy($this, $value, $desc));
+        $result = $this->call(new OrderBy($value, $desc));
 
         return $result;
     }
@@ -51,7 +56,7 @@ class DeleteQuery extends AbstractQuery
         BooleanType $on = null,
         JoinTypeEnum $joinType = JoinTypeEnum::Outer,
     ): self {
-        $this->call(new From($this, $source, $on, $joinType));
+        $this->call(new From($source, $on, $joinType));
 
         return $this;
     }

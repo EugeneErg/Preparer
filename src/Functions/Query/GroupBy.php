@@ -12,9 +12,8 @@ class GroupBy extends AbstractQueryFunction
 {
     public readonly TypeCollection $values;
 
-    public function __construct(TypeInterface $context, FieldTypeInterface ...$values)
+    public function __construct(FieldTypeInterface ...$values)
     {
-        parent::__construct($context);
         $this->values = new TypeCollection($values);
     }
 }

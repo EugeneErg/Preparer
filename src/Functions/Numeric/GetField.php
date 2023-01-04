@@ -11,17 +11,14 @@ use EugeneErg\Preparer\Types\BooleanType;
 use EugeneErg\Preparer\Types\NumericType;
 use EugeneErg\Preparer\Types\ObjectType;
 use EugeneErg\Preparer\Types\StringType;
-use EugeneErg\Preparer\Types\TypeInterface;
 use JetBrains\PhpStorm\Pure;
 
 class GetField extends AbstractFunction
 {
     #[Pure] public function __construct(
-        TypeInterface $context,
         public readonly TypeEnum $type,
         public readonly string $field,
     ) {
-        parent::__construct($context);
     }
 
     protected function getType(): string

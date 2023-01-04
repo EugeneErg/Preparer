@@ -12,13 +12,12 @@ use EugeneErg\Preparer\Types\TypeInterface;
 class Count extends AbstractAggregateFunction
 {
     public function __construct(
-        TypeInterface $context,
         public readonly CountableTypeInterface $value,
         public readonly bool $distinct = false,
         ?TypeCollection $partitionBy = null,
         ?TypeCollection $orderBy = null,
     ) {
-        parent::__construct($context, $partitionBy, $orderBy);
+        parent::__construct($partitionBy, $orderBy);
     }
 
     public function equals(AbstractFunction $function): bool

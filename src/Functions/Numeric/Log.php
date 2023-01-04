@@ -10,9 +10,8 @@ use EugeneErg\Preparer\Types\TypeInterface;
 
 class Log extends AbstractNumericFunction
 {
-    public function __construct(TypeInterface $context, public readonly NumericType $base)
+    public function __construct(public readonly NumericType $base)
     {
-        parent::__construct($context);
     }
 
     public function equals(AbstractFunction $function): bool

@@ -9,8 +9,7 @@ use EugeneErg\Preparer\Types\TypeInterface;
 
 class AndFunction extends AbstractBooleanFunction
 {
-    public function __construct(TypeInterface $context, public readonly BooleanType $value)
+    public function __construct(public readonly BooleanType $value)
     {
-        parent::__construct($context);
     }
 }

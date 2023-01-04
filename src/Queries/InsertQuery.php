@@ -18,8 +18,13 @@ class InsertQuery extends AbstractQuery
         public readonly Table $table,
         Returning $source,
     ) {
-        $this->call(new From($this, $source->source));
+        $this->call(new From($source->source));
         $this->action = $source->select;
-        parent::__construct(QueryTypeEnum::Insert);
+        parent::__construct();
+    }
+
+    public function getType(): QueryTypeEnum
+    {
+        return QueryTypeEnum::Insert;
     }
 }

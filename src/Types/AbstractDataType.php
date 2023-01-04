@@ -4,22 +4,22 @@ declare(strict_types=1);
 
 namespace EugeneErg\Preparer\Types;
 
-use EugeneErg\Preparer\Collections\FunctionCollection;
 use EugeneErg\Preparer\Enums\AngleTypeEnum;
 use EugeneErg\Preparer\Enums\TypeEnum;
+use EugeneErg\Preparer\Functions\AbstractFunction;
 use EugeneErg\Preparer\Functions\Numeric\GetField;
 
 abstract class AbstractDataType extends AbstractType implements CountableTypeInterface
 {
-    public function __construct(FunctionCollection $methods = null)
+    public function __construct(?AbstractFunction $functionThatReturnsThisValue = null)
     {
-        parent::__construct($methods);
+        parent::__construct($functionThatReturnsThisValue);
     }
 
     public function getNumeric(string $field): NumericType
     {
         /** @var NumericType $result */
-        $result = $this->call(new GetField($this, TypeEnum::Numeric, $field));
+        $result = $this->call(new GetField(TypeEnum::Numeric, $field));
 
         return $result;
     }
@@ -29,7 +29,7 @@ abstract class AbstractDataType extends AbstractType implements CountableTypeInt
         AngleTypeEnum $type = AngleTypeEnum::Degrees,
     ): AngleType {
         /** @var AngleType $result */
-        $result = $this->call(new GetField($this, match ($type) {
+        $result = $this->call(new GetField(match ($type) {
             AngleTypeEnum::Degrees => TypeEnum::Degrees,
             AngleTypeEnum::Radians => TypeEnum::Radians,
         }, $field));
@@ -40,7 +40,7 @@ abstract class AbstractDataType extends AbstractType implements CountableTypeInt
     public function getString(string $field): StringType
     {
         /** @var StringType $result */
-        $result = $this->call(new GetField($this, TypeEnum::String, $field));
+        $result = $this->call(new GetField(TypeEnum::String, $field));
 
         return $result;
     }
@@ -48,7 +48,7 @@ abstract class AbstractDataType extends AbstractType implements CountableTypeInt
     public function getBoolean(string $field): BooleanType
     {
         /** @var BooleanType $result */
-        $result = $this->call(new GetField($this, TypeEnum::Boolean, $field));
+        $result = $this->call(new GetField(TypeEnum::Boolean, $field));
 
         return $result;
     }

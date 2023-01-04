@@ -10,10 +10,8 @@ use EugeneErg\Preparer\Types\TypeInterface;
 class OrderBy extends AbstractQueryFunction
 {
     public function __construct(
-        TypeInterface $context,
         public readonly FieldTypeInterface $value,
         public readonly bool $desc = false,
     ) {
-        parent::__construct($context);
     }
 }

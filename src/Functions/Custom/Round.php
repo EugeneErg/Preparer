@@ -10,9 +10,8 @@ use EugeneErg\Preparer\Types\TypeInterface;
 
 class Round extends AbstractFunction
 {
-    public function __construct(TypeInterface $context, public readonly RoundTypeEnum $type)
+    public function __construct(public readonly RoundTypeEnum $type)
     {
-        parent::__construct($context);
     }
 
     public function equals(AbstractFunction $function): bool

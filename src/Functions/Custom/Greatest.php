@@ -12,9 +12,8 @@ class Greatest extends AbstractFunction
 {
     private readonly array $values;
 
-    public function __construct(TypeInterface $context, FieldTypeInterface ...$values)
+    public function __construct(FieldTypeInterface ...$values)
     {
-        parent::__construct($context);
         $this->values = $values;
     }
 

@@ -4,27 +4,24 @@ declare(strict_types=1);
 
 namespace EugeneErg\Preparer\Functions;
 
-use EugeneErg\Preparer\Types\TypeInterface;
+use EugeneErg\Preparer\Types\AbstractType;
 
 abstract class AbstractFunction
 {
     protected const RETURN_TYPE = null;
+    public readonly AbstractType $context;
 
-    public function __construct(public readonly TypeInterface $context)
-    {
-    }
-
-    /** @return class-string<TypeInterface> */
+    /** @return class-string<AbstractType> */
     protected function getType(): string
     {
         return static::RETURN_TYPE ?? get_class($this->context);
     }
 
-    public function __invoke(): TypeInterface
+    public function __invoke(): AbstractType
     {
         $class = $this->getType();
 
-        return new $class($this->context->getMethods()->set($this));
+        return new $class($this);
     }
 
     public function equals(self $function): bool

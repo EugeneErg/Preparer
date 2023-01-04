@@ -22,15 +22,20 @@ class UpdateQuery extends AbstractQuery
         public readonly ?int $limit = null,
         public readonly int $offset = 0,
     ) {
-        $this->call(new From($this, $source->source));
+        $this->call(new From($source->source));
         $this->action = $source->select;
-        parent::__construct(QueryTypeEnum::Update);
+        parent::__construct();
+    }
+
+    public function getType(): QueryTypeEnum
+    {
+        return QueryTypeEnum::Update;
     }
 
     public function orderBy(FieldTypeInterface $value, bool $desc = false): self
     {
         /** @var self $result */
-        $result = $this->call(new OrderBy($this, $value, $desc));
+        $result = $this->call(new OrderBy($value, $desc));
 
         return $result;
     }

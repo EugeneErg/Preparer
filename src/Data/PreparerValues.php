@@ -8,8 +8,8 @@ use EugeneErg\Preparer\Enums\QueryTypeEnum;
 
 class PreparerValues extends AbstractData
 {
-    public function __construct()
+    public function getType(): QueryTypeEnum
     {
-        parent::__construct(QueryTypeEnum::Values);
+        return QueryTypeEnum::Values;
     }
 }

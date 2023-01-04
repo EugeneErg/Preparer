@@ -110,7 +110,7 @@ class Builder
             $returning = $returning->unset($hash);
         }
 
-        $functions = $query->getChildMethods()->reduce(
+        $functions = $query->getResults()->reduce(
             function (array $init, AbstractFunction $function): array {
                 $init[self::MAP[get_class($function)]][] = $function;
 

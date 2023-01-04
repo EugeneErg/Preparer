@@ -4,42 +4,40 @@ declare(strict_types=1);
 
 namespace EugeneErg\Preparer\Types;
 
-use EugeneErg\Preparer\Collections\FunctionCollection;
+use EugeneErg\Preparer\Collections\TypeCollection;
 use EugeneErg\Preparer\Functions\AbstractFunction;
 
 abstract class AbstractType implements TypeInterface
 {
-    private array $childMethods = [];
-    private readonly FunctionCollection $methods;
+    private TypeCollection $results;
 
-    public function __construct(FunctionCollection $methods = null)
+    public function __construct(private readonly ?AbstractFunction $functionThatReturnsThisValue = null)
     {
-        $this->methods = $methods ?? new FunctionCollection();
+        $this->results = new TypeCollection([], false);
     }
 
-    public function getMethods(): FunctionCollection
+    public function getFunctionThatReturnsThisValue(): ?AbstractFunction
     {
-        return $this->methods;
+        return $this->functionThatReturnsThisValue;
     }
 
-    protected function call(AbstractFunction $function): TypeInterface
+    protected function call(AbstractFunction $function): AbstractType
     {
-        $class = get_class($function);
+        $function->context = $this;
 
-        foreach ($this->childMethods[$class] ?? [] as [$childFunction, $result]) {
-            if ($function->equals($childFunction)) {
+        foreach ($this->results ?? [] as $result) {
+            if ($function->equals($result->getFunctionThatReturnsThisValue())) {
                 return $result;
             }
         }
 
-        $result = $function();
-        $this->childMethods[$class][] = [$function, $result];
-
-        return $result;
+        return $this->results[] = $function();
     }
 
-    public function getChildMethods(): FunctionCollection
+    public function getResults(): TypeCollection
     {
-        return new FunctionCollection(array_column($this->childMethods, 0));
+        $result = clone $this->results;
+
+        return $result->setImmutable(true);
     }
 }

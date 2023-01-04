@@ -6,7 +6,6 @@ namespace EugeneErg\Preparer\Data;
 
 use EugeneErg\Preparer\Collections\QueryTypeCollection;
 use EugeneErg\Preparer\Collections\QueryTypeCollectionInterface;
-use EugeneErg\Preparer\Enums\QueryTypeEnum;
 use EugeneErg\Preparer\Enums\TypeEnum;
 use EugeneErg\Preparer\Functions\Numeric\GetField;
 use EugeneErg\Preparer\Types\AbstractDataType;
@@ -18,20 +17,15 @@ abstract class AbstractData extends AbstractDataType implements QueryTypeInterfa
     /** @var TypeEnum[] */
     protected array $fields = [];
 
-    public function __construct(public readonly QueryTypeEnum $type)
+    public function __construct()
     {
         parent::__construct();
-    }
-
-    public function getType(): QueryTypeEnum
-    {
-        return $this->type;
     }
 
     public function __get(string $field): FieldTypeInterface
     {
         /** @var FieldTypeInterface $result */
-        $result = $this->call(new GetField($this, $this->fields[$field], $field));
+        $result = $this->call(new GetField($this->fields[$field], $field));
 
         return $result;
     }

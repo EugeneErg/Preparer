@@ -17,7 +17,7 @@ class Union extends AbstractData
 
     public function __construct(public readonly bool $distinct = false, Returning ...$sources)
     {
-        parent::__construct(QueryTypeEnum::Union);
+        parent::__construct();
         $this->sources = new ReturningCollection($sources);
     }
 
@@ -28,5 +28,10 @@ class Union extends AbstractData
             fn (Returning $returning): QueryTypeInterface => $returning->source,
             $this->sources,
         );
+    }
+
+    public function getType(): QueryTypeEnum
+    {
+        return QueryTypeEnum::Union;
     }
 }

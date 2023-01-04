@@ -17,11 +17,9 @@ abstract class AbstractAggregateFunction extends AbstractFunction
     public readonly TypeCollection $orderBy;
 
     public function __construct(
-        TypeInterface $context,
         ?TypeCollection $partitionBy = null,
         ?TypeCollection $orderBy = null,
     ) {
-        parent::__construct($context);
         $this->partitionBy = $partitionBy ?? new TypeCollection();
         $this->orderBy = $orderBy ?? new TypeCollection();
     }

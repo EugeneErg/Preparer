@@ -6,8 +6,6 @@ namespace EugeneErg\Preparer\Queries;
 
 use EugeneErg\Preparer\Collections\QueryTypeCollection;
 use EugeneErg\Preparer\Collections\QueryTypeCollectionInterface;
-use EugeneErg\Preparer\Enums\QueryTypeEnum;
-use EugeneErg\Preparer\Functions\AbstractFunction;
 use EugeneErg\Preparer\Functions\Query\From;
 use EugeneErg\Preparer\Functions\Query\Where;
 use EugeneErg\Preparer\Types\AbstractType;
@@ -17,19 +15,14 @@ use EugeneErg\Preparer\Types\QueryTypeInterface;
 
 abstract class AbstractQuery extends AbstractType implements CountableTypeInterface, QueryTypeInterface
 {
-    public function __construct(private readonly QueryTypeEnum $type)
+    public function __construct()
     {
         parent::__construct();
     }
 
-    public function getType(): QueryTypeEnum
-    {
-        return $this->type;
-    }
-
     public function where(BooleanType $value): self
     {
-        parent::call(new Where($this, $value));
+        $this->call(new Where($value));
 
         return $this;
     }
@@ -43,9 +36,9 @@ abstract class AbstractQuery extends AbstractType implements CountableTypeInterf
     {
         return QueryTypeCollection::fromMap(
             true,
-            fn (From $from): QueryTypeInterface => $from->source,
-            $this->getChildMethods()
-                ->filter(fn (AbstractFunction $function): bool => $function instanceof From),
+            fn (AbstractType $result): QueryTypeInterface => $result->getFunctionThatReturnsThisValue()->source,
+            $this->getResults()
+                ->filter(fn (AbstractType $result): bool => $result->getFunctionThatReturnsThisValue() instanceof From),
         );
     }
 }

@@ -9,10 +9,7 @@ use EugeneErg\Preparer\Types\TypeInterface;
 
 class Atan extends AbstractNumericFunction
 {
-    public function __construct(
-        TypeInterface $context,
-        public readonly AngleTypeEnum $angleType = AngleTypeEnum::Degrees,
-    ) {
-        parent::__construct($context);
+    public function __construct(public readonly AngleTypeEnum $angleType = AngleTypeEnum::Degrees)
+    {
     }
 }
