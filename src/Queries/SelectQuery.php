@@ -34,26 +34,29 @@ class SelectQuery extends AbstractQuery
         ?TypeCollection $partitionBy = null,
         ?TypeCollection $orderBy = null,
     ): AggregateType {
-        return $this->call(new Count($this, $value ?? $this, $distinct, $partitionBy, $orderBy));
+        /** @var AggregateType $result */
+        $result = $this->call(new Count($this, $value ?? $this, $distinct, $partitionBy, $orderBy));
+
+        return $result;
     }
 
     public function orderBy(FieldTypeInterface $value, bool $desc = false): self
     {
-        $this->call(new OrderBy($value, $desc));
+        $this->call(new OrderBy($this, $value, $desc));
 
         return $this;
     }
 
     public function groupBy(FieldTypeInterface ...$values): self
     {
-        $this->call(new GroupBy(...$values));
+        $this->call(new GroupBy($this, ...$values));
 
         return $this;
     }
 
     public function having(BooleanType $value): self
     {
-        $this->call(new Having($value));
+        $this->call(new Having($this, $value));
 
         return $this;
     }
@@ -63,7 +66,7 @@ class SelectQuery extends AbstractQuery
         BooleanType $on = null,
         JoinTypeEnum $joinType = JoinTypeEnum::Outer,
     ): self {
-        $this->call(new From($source, $on, $joinType));
+        $this->call(new From($this, $source, $on, $joinType));
 
         return $this;
     }

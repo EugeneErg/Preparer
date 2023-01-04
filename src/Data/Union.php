@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace EugeneErg\Preparer\Data;
 
+use EugeneErg\Preparer\Collections\QueryTypeCollection;
+use EugeneErg\Preparer\Collections\QueryTypeCollectionInterface;
 use EugeneErg\Preparer\Collections\ReturningCollection;
+use EugeneErg\Preparer\Enums\QueryTypeEnum;
 use EugeneErg\Preparer\Returning;
+use EugeneErg\Preparer\Types\QueryTypeInterface;
 
 class Union extends AbstractData
 {
@@ -13,7 +17,16 @@ class Union extends AbstractData
 
     public function __construct(public readonly bool $distinct = false, Returning ...$sources)
     {
+        parent::__construct(QueryTypeEnum::Union);
         $this->sources = new ReturningCollection($sources);
-        parent::__construct();
+    }
+
+    public function getChildren(): QueryTypeCollectionInterface
+    {
+        return QueryTypeCollection::fromMap(
+            true,
+            fn (Returning $returning): QueryTypeInterface => $returning->source,
+            $this->sources,
+        );
     }
 }

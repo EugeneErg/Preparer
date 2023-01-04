@@ -12,7 +12,6 @@ use EugeneErg\Preparer\Functions\Query\OrderBy;
 use EugeneErg\Preparer\Types\BooleanType;
 use EugeneErg\Preparer\Types\FieldTypeInterface;
 use EugeneErg\Preparer\Types\QueryTypeInterface;
-use JetBrains\PhpStorm\Pure;
 
 /**
  * PostgresQl
@@ -41,7 +40,10 @@ class DeleteQuery extends AbstractQuery
 
     public function orderBy(FieldTypeInterface $value, bool $desc = false): self
     {
-        return $this->call(new OrderBy($value, $desc));
+        /** @var self $result */
+        $result = $this->call(new OrderBy($this, $value, $desc));
+
+        return $result;
     }
 
     public function from(
@@ -49,7 +51,7 @@ class DeleteQuery extends AbstractQuery
         BooleanType $on = null,
         JoinTypeEnum $joinType = JoinTypeEnum::Outer,
     ): self {
-        $this->call(new From($source, $on, $joinType));
+        $this->call(new From($this, $source, $on, $joinType));
 
         return $this;
     }
