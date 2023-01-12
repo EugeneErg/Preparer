@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace EugeneErg\Preparer\Types;
 
+use EugeneErg\Preparer\Collections\FunctionCollection;
 use EugeneErg\Preparer\Enums\AngleTypeEnum;
 use EugeneErg\Preparer\Enums\TypeEnum;
-use EugeneErg\Preparer\Functions\AbstractFunction;
 use EugeneErg\Preparer\Functions\Numeric\GetField;
 
 abstract class AbstractDataType extends AbstractType implements CountableTypeInterface
 {
-    public function __construct(?AbstractFunction $functionThatReturnsThisValue = null)
+    public function __construct(?FunctionCollection $ancestors = null)
     {
-        parent::__construct($functionThatReturnsThisValue);
+        parent::__construct($ancestors);
     }
 
     public function getNumeric(string $field): NumericType

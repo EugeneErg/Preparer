@@ -11,5 +11,5 @@ interface QueryTypeInterface extends TypeInterface
 {
     public function __toString(): string;
     public function getType(): QueryTypeEnum;
-    public function getChildren(): QueryTypeCollectionInterface;
+    public function getSubQueries(): QueryTypeCollectionInterface;
 }

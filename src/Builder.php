@@ -7,9 +7,11 @@ namespace EugeneErg\Preparer;
 use EugeneErg\Preparer\Collections\FromCollection;
 use EugeneErg\Preparer\Collections\FunctionCollection;
 use EugeneErg\Preparer\Collections\MutableReturningCollection;
+use EugeneErg\Preparer\Collections\RequiredCollection;
+use EugeneErg\Preparer\Collections\RequiredMatrix;
 use EugeneErg\Preparer\Collections\ReturningCollection;
 use EugeneErg\Preparer\Collections\SelectCollection;
-use EugeneErg\Preparer\Collections\TreeCollection;
+use EugeneErg\Preparer\Collections\BranchCollection;
 use EugeneErg\Preparer\Collections\TypeCollection;
 use EugeneErg\Preparer\Data\AbstractData;
 use EugeneErg\Preparer\Data\Union;
@@ -24,12 +26,12 @@ use EugeneErg\Preparer\Functions\Query\Having;
 use EugeneErg\Preparer\Functions\Query\OrderBy;
 use EugeneErg\Preparer\Functions\Query\Where;
 use EugeneErg\Preparer\Queries\AbstractQuery;
-use EugeneErg\Preparer\Services\TreeService;
 use EugeneErg\Preparer\Types\BooleanType;
 use EugeneErg\Preparer\Types\FieldTypeInterface;
 use EugeneErg\Preparer\Types\QueryTypeInterface;
 use EugeneErg\Preparer\DataTransferObjects\From as FromDto;
-use EugeneErg\Preparer\ValueObjects\Tree;
+use EugeneErg\Preparer\ValueObjects\Branch;
+use EugeneErg\Preparer\ValueObjects\Required;
 
 class Builder
 {
@@ -41,15 +43,15 @@ class Builder
         From::class => 'from',
     ];
 
-    public function __construct(private readonly TreeService $treeService)
+    public function __construct()
     {
     }
 
     /** Выполнит запрос и вернет необходимые данные */
     public function build(Returning $returning): Query
     {
-        $structure = $this->treeService->getQueryStructure($returning->source);
-        $newReturning = $this->createReturning($returning, $structure);
+        $structure = Branch::getStructure($returning->source);
+        $allRequires = Required::getStructure($returning, $structure);
 
         [$result, $returning] = $this->buildWithJointType(
             $returning->source,
@@ -67,23 +69,26 @@ class Builder
         return $this->build(new Returning(new TypeCollection(), $query));
     }
 
-    private function createReturning(
+    private function getRequires(
         Returning $returning,
-        TreeCollection $structure,
-    ): ReturningCollection {//то, что в итоге извлекаем из всех источников
-        $hash = spl_object_hash($returning->source);
-        $result = [$hash => $returning];
+        BranchCollection $structure,
+        RequiredMatrix $requiredMatrix,
+    ): RequiredCollection {
+        $result = new RequiredCollection([], false);
+        //$hash = spl_object_hash($returning->source);
+        //$result = [$hash => $returning];
 
         foreach ($returning->select as $alias => $item) {
-            $this->distinguish($item, $returning->source, $structure);
-
+            $result[$alias] = $this->distinguish($item, $returning->source, $structure);
         }
+
+        return $result->setImmutable();
     }
 
     private function buildWithJointType(
         QueryTypeInterface $source,
         TypeCollection     $select,
-        TreeCollection     $structure,
+        BranchCollection   $structure,
         array              $returning,
         array              $parents = [],
     ): array {
@@ -96,11 +101,11 @@ class Builder
     }
 
     private function buildFromQuery(
-        AbstractQuery  $query,
-        TypeCollection $select,
-        TreeCollection $structure,
-        array $returning,
-        array $parents = [],
+        AbstractQuery    $query,
+        TypeCollection   $select,
+        BranchCollection $structure,
+        array            $returning,
+        array            $parents = [],
     ): array {
         $hash = spl_object_hash($query);
         $parents[] = $hash;
@@ -110,7 +115,7 @@ class Builder
             $returning = $returning->unset($hash);
         }
 
-        $functions = $query->getResults()->reduce(
+        $functions = $query->getChildren()->reduce(
             function (array $init, AbstractFunction $function): array {
                 $init[self::MAP[get_class($function)]][] = $function;
 
@@ -182,7 +187,7 @@ class Builder
     private function buildFromData(
         AbstractData        $query,
         TypeCollection      $select,
-        TreeCollection      $structure,
+        BranchCollection    $structure,
         ReturningCollection $returning,
         JoinTypeEnum        $joinType = JoinTypeEnum::Outer,
         BooleanType         $on = null,
@@ -314,10 +319,13 @@ class Builder
     private function distinguish(
         FieldTypeInterface $item,
         QueryTypeInterface $source,
-        TreeCollection $structure,
-    ) {
+        BranchCollection $structure,
+    ): Required {
+        $function = $item->getParent();
 
-        $context = $item->getMethods()->first()->context;
+
+
+
         $from = $context->value instanceof AbstractData
             ? $structure[spl_object_hash($context->value)]->parent?->query
             : $context->value;
@@ -358,18 +366,18 @@ class Builder
     }
 
     private function getNearestSourceByMethod(
-        Tree $to,
+        Branch           $to,
         AbstractFunction $data,
-        TreeCollection $structure,
+        BranchCollection $structure,
     ): SelectCollection {
         return $this->getNearestSourceByIterable($to, get_object_vars($data), $structure);
     }
 
     private function getNearestSourceByQuery(
-        Tree $to,
+        Branch             $to,
         QueryTypeInterface $data,
-        TreeCollection $structure,
-    ): TreeCollection {
+        BranchCollection   $structure,
+    ): BranchCollection {
         if (
             !isset($structure[$data]->parent)
             && !$data instanceof Value
@@ -388,10 +396,10 @@ class Builder
     }
 
     private function getNearestSourceByIterable(
-        Tree $to,
-        iterable $data,
-        TreeCollection $structure,
-    ): TreeCollection {
+        Branch           $to,
+        iterable         $data,
+        BranchCollection $structure,
+    ): BranchCollection {
         $from = $to;
         $result = [];
 
@@ -403,7 +411,7 @@ class Builder
             } elseif (is_iterable($datum)) {
                 $selectPath = $this->getNearestSourceByIterable($to, $datum, $structure);
             } else {
-                $selectPath = new TreeCollection();
+                $selectPath = new BranchCollection();
             }
 
             if ($subResult !== $from) {
@@ -417,9 +425,9 @@ class Builder
     }
 
     private function getNearestSourceByField(
-        Tree $to,
+        Branch             $to,
         FieldTypeInterface $data,
-        TreeCollection $structure,
+        BranchCollection   $structure,
     ): SelectCollection {
         /**
          * 1) Существует дерево запросов
@@ -457,10 +465,10 @@ class Builder
          *
          *
          */
-        $result = new TreeCollection();
+        $result = new BranchCollection();
         $path = $data instanceof QueryTypeInterface
             ? $this->getNearestSourceByQuery($to, $data, $structure)
-            : new TreeCollection();
+            : new BranchCollection();
         $isParentContext = $path->isEmpty() ? null : $path->last()->level <= $to->level;
 
         foreach ($data->getMethods()->reverse() as $method) {

@@ -21,7 +21,7 @@ class Union extends AbstractData
         $this->sources = new ReturningCollection($sources);
     }
 
-    public function getChildren(): QueryTypeCollectionInterface
+    public function getSubQueries(): QueryTypeCollectionInterface
     {
         return QueryTypeCollection::fromMap(
             true,

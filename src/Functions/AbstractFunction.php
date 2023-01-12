@@ -21,7 +21,7 @@ abstract class AbstractFunction
     {
         $class = $this->getType();
 
-        return new $class($this);
+        return new $class($this->context->getAncestors()->set($this));
     }
 
     public function equals(self $function): bool

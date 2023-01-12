@@ -8,7 +8,7 @@ use EugeneErg\Preparer\Functions\Boolean\IsNull;
 class AbstractFieldType extends AbstractType implements FieldTypeInterface
 {
     /** @return BooleanType */
-    protected function call(AbstractFunction $function): TypeInterface
+    protected function call(AbstractFunction $function): AbstractType
     {
         return parent::call($function);
     }

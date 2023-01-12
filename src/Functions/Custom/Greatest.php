@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace EugeneErg\Preparer\Functions\Custom;
 
 use EugeneErg\Preparer\Functions\AbstractFunction;
+use EugeneErg\Preparer\Types\AbstractType;
 use EugeneErg\Preparer\Types\FieldTypeInterface;
 use EugeneErg\Preparer\Types\TypeInterface;
 
@@ -29,7 +30,7 @@ class Greatest extends AbstractFunction
             && $function->values === $this->values;
     }
 
-    public function __invoke(): TypeInterface
+    public function __invoke(): AbstractType
     {
         $class = get_class($this->context);
 

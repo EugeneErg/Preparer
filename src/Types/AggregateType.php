@@ -18,7 +18,7 @@ use EugeneErg\Preparer\Functions\String\ToString;
 class AggregateType extends AbstractType implements FieldTypeInterface
 {
     /** @return self|NumericType|StringType|AngleType|BooleanType */
-    protected function call(AbstractFunction $function): TypeInterface
+    protected function call(AbstractFunction $function): AbstractType
     {
         return parent::call($function);
     }

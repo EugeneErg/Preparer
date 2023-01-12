@@ -6,8 +6,11 @@ namespace EugeneErg\Preparer\Data;
 
 class Value extends PreparerValue
 {
-    public function __construct(public readonly array $data)
+    public readonly array $data;
+
+    public function __construct(mixed ...$data)
     {
+        $this->data = $data;
         parent::__construct();
     }
 }

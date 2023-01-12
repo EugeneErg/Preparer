@@ -22,7 +22,10 @@ class UpdateQuery extends AbstractQuery
         public readonly ?int $limit = null,
         public readonly int $offset = 0,
     ) {
-        $this->call(new From($source->source));
+        if ($source->source !== null) {
+            $this->call(new From($source->source));
+        }
+
         $this->action = $source->select;
         parent::__construct();
     }

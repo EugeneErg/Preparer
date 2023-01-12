@@ -17,11 +17,6 @@ abstract class AbstractData extends AbstractDataType implements QueryTypeInterfa
     /** @var TypeEnum[] */
     protected array $fields = [];
 
-    public function __construct()
-    {
-        parent::__construct();
-    }
-
     public function __get(string $field): FieldTypeInterface
     {
         /** @var FieldTypeInterface $result */
@@ -35,7 +30,7 @@ abstract class AbstractData extends AbstractDataType implements QueryTypeInterfa
         return spl_object_hash($this);
     }
 
-    public function getChildren(): QueryTypeCollectionInterface
+    public function getSubQueries(): QueryTypeCollectionInterface
     {
         return new QueryTypeCollection();
     }

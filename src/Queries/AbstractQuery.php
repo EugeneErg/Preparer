@@ -32,13 +32,13 @@ abstract class AbstractQuery extends AbstractType implements CountableTypeInterf
         return spl_object_hash($this);
     }
 
-    public function getChildren(): QueryTypeCollectionInterface
+    public function getSubQueries(): QueryTypeCollectionInterface
     {
         return QueryTypeCollection::fromMap(
             true,
-            fn (AbstractType $result): QueryTypeInterface => $result->getFunctionThatReturnsThisValue()->source,
-            $this->getResults()
-                ->filter(fn (AbstractType $result): bool => $result->getFunctionThatReturnsThisValue() instanceof From),
+            fn (AbstractType $result): QueryTypeInterface => $result->getParent()->source,
+            $this->getChildren()
+                ->filter(fn (AbstractType $result): bool => $result->getParent() instanceof From),
         );
     }
 }

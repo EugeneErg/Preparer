@@ -15,7 +15,7 @@ use EugeneErg\Preparer\Functions\String\ToString;
 class BooleanType extends AbstractFieldType implements FieldTypeInterface
 {
     /** @return NumericType|AngleType|StringType|BooleanType */
-    protected function call(AbstractFunction $function): TypeInterface
+    protected function call(AbstractFunction $function): AbstractType
     {
         return parent::call($function);
     }

@@ -18,7 +18,10 @@ class InsertQuery extends AbstractQuery
         public readonly Table $table,
         Returning $source,
     ) {
-        $this->call(new From($source->source));
+        if ($source->source !== null) {
+            $this->call(new From($source->source));
+        }
+
         $this->action = $source->select;
         parent::__construct();
     }

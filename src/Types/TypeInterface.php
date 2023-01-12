@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace EugeneErg\Preparer\Types;
 
-use EugeneErg\Preparer\Collections\TypeCollection;
+use EugeneErg\Preparer\Collections\FunctionCollection;
 use EugeneErg\Preparer\Functions\AbstractFunction;
 
 interface TypeInterface
 {
-    public function getFunctionThatReturnsThisValue(): ?AbstractFunction;
-    public function getResults(): TypeCollection;
+    public function getAncestors(): FunctionCollection;
+    public function getParent(): ?AbstractFunction;
+    public function getChildren(): FunctionCollection;
 }
