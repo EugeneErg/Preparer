@@ -6,7 +6,6 @@ namespace EugeneErg\Preparer\ValueObjects;
 
 use EugeneErg\Preparer\Collections\BranchCollection;
 use EugeneErg\Preparer\Collections\DestinationCollection;
-use EugeneErg\Preparer\Collections\FunctionCollection;
 use EugeneErg\Preparer\Collections\RequiredCollection;
 use EugeneErg\Preparer\Collections\SelectCollection;
 use EugeneErg\Preparer\DataTransferObjects\Destination;
@@ -194,30 +193,41 @@ final class Required
     ): void {
         $hash = spl_object_hash($method);
         $result = $requires[$hash];
+        $maxPos = self::getPosition($result->executionRange, $upperRestrict);
+        $requires[$hash] = isset($maxPos)
+            ? new self(
+                $result->target,
+                $result->executionRange->slice(0, $maxPos + 1),
+                new SelectCollection(),
+                $result->destinations,
+            )
+            : new self(//могут образоваться селекты с одинаоквыми путями
+                $result->target,
+                $result->executionRange,
+                SelectCollection::fromMap(true, function (Select $select) use ($upperRestrict): Select {
+                    $maxPos = self::getPosition($select->path, $upperRestrict);
+
+                    return $maxPos === null
+                        ? $select
+                        : new Select($select->path->slice(0, $maxPos + 1), $select->method);
+                }, $result->used),
+                $result->destinations,
+            );
+        self::restrictChildrenExecutionRange($requires[$hash]->target, $upperRestrict, $requires);
+    }
+
+    private static function getPosition(BranchCollection $collection, Branch $search): ?int
+    {
         $pos = 0;
 
-        foreach ($result->executionRange as $value) {
-            if ($value === $upperRestrict) {
-                $maxPos = $pos;
-
-                break;
+        foreach ($collection as $value) {
+            if ($value === $search) {
+                return $pos;
             }
 
             $pos++;
         }
 
-        if (isset($maxPos)) {
-            $path = $result->executionRange->slice($maxPos);
-            $requires[$hash] = new self(
-                $result->target,
-                $result->executionRange->slice(0, $maxPos + 1),
-                SelectCollection::fromMap(true, function (Select $select) use ($path): Select {
-                    return new Select(BranchCollection::fromMerge(true, $path, $select->path), $select->method);
-                }, $result->used),
-                $result->destinations,
-            );
-        }
-
-        self::restrictChildrenExecutionRange($requires[$hash]->target, $upperRestrict, $requires);
+        return null;
     }
 }
