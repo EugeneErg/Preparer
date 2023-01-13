@@ -9,6 +9,7 @@ use EugeneErg\Preparer\ValueObjects\Required;
 
 /**
  * @method Required offsetGet(int|string $offset)
+ * @method Required[] getIterator()
  */
 class RequiredCollection extends ObjectCollection
 {

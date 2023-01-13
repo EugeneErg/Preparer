@@ -39,7 +39,7 @@ final class Required
             self::fillWithoutSelect($method, $returning->source, $structure, $result);
         }
 
-        return $result->setImmutable();
+        return self::optimize($result);
     }
 
     private static function fillWithSelect(
@@ -235,5 +235,27 @@ final class Required
         }
 
         return null;
+    }
+
+    //todo выбираем для каждой функции первый вазможный пункт выполнения
+    //при этом перенося остальной путь в select
+    private static function optimize(RequiredCollection $result): RequiredCollection
+    {
+        foreach ($result as $key => $value) {
+            $path = $value->executionRange->slice(1);
+            $result[$key] = new Required(
+                $value->target,
+                $value->executionRange->slice(0, 1),
+                SelectCollection::fromMap(true, function (Select $select) use ($path): Select {
+                    return new Select(
+                        BranchCollection::fromMerge(true, $path, $select->path),
+                        $select->method,
+                    );
+                }, $value->used),
+                $value->destinations,
+            );
+        }
+
+        return $result->setImmutable();
     }
 }
