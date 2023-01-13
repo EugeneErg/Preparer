@@ -181,12 +181,13 @@ final class Required
                 && $value instanceof AbstractType
                 && $value->getParent() !== null
             ) {
-                self::restrictExecutionRange($value->getParent(), $upperRestrict, $requires);
+                self::restrictExecutionRange($target, $value->getParent(), $upperRestrict, $requires);
             }
         }
     }
 
     private static function restrictExecutionRange(
+        AbstractFunction $parent,
         AbstractFunction $method,
         Branch $upperRestrict,
         RequiredCollection $requires,
@@ -204,7 +205,11 @@ final class Required
             : new self(//могут образоваться селекты с одинаоквыми путями
                 $result->target,
                 $result->executionRange,
-                SelectCollection::fromMap(true, function (Select $select) use ($upperRestrict): Select {
+                SelectCollection::fromMap(true, function (Select $select) use ($upperRestrict, $parent): Select {
+                    if ($select->method !== $parent) {
+                        return $select;
+                    }
+
                     $maxPos = self::getPosition($select->path, $upperRestrict);
 
                     return $maxPos === null
@@ -213,6 +218,7 @@ final class Required
                 }, $result->used),
                 $result->destinations,
             );
+        //todo есть ли в этом смысл если пересечение не найдено?
         self::restrictChildrenExecutionRange($requires[$hash]->target, $upperRestrict, $requires);
     }
 
