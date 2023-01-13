@@ -237,8 +237,6 @@ final class Required
         return null;
     }
 
-    //todo выбираем для каждой функции первый вазможный пункт выполнения
-    //при этом перенося остальной путь в select
     private static function optimize(RequiredCollection $result): RequiredCollection
     {
         foreach ($result as $key => $value) {
