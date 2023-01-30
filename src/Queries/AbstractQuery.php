@@ -6,6 +6,7 @@ namespace EugeneErg\Preparer\Queries;
 
 use EugeneErg\Preparer\Collections\QueryTypeCollection;
 use EugeneErg\Preparer\Collections\QueryTypeCollectionInterface;
+use EugeneErg\Preparer\Functions\AbstractFunction;
 use EugeneErg\Preparer\Functions\Query\From;
 use EugeneErg\Preparer\Functions\Query\Where;
 use EugeneErg\Preparer\Types\AbstractType;
@@ -36,9 +37,9 @@ abstract class AbstractQuery extends AbstractType implements CountableTypeInterf
     {
         return QueryTypeCollection::fromMap(
             true,
-            fn (AbstractType $result): QueryTypeInterface => $result->getParent()->source,
+            fn (From $result): QueryTypeInterface => $result->source,
             $this->getChildren()
-                ->filter(fn (AbstractType $result): bool => $result->getParent() instanceof From),
+                ->filter(fn (AbstractFunction $result): bool => $result instanceof From),
         );
     }
 }

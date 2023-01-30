@@ -71,8 +71,19 @@ class SelectQuery extends AbstractQuery
         BooleanType $on = null,
         JoinTypeEnum $joinType = JoinTypeEnum::Outer,
     ): self {
-        $this->call(new From($source, $on, $joinType));
+        return $this->call(new From($source, $on, $joinType));
+    }
 
-        return $this;
+    public function __debugInfo(): array
+    {
+        return array_merge(
+            parent::__debugInfo(),
+            [
+                'distinct' => $this->distinct,
+                'limit' => $this->limit,
+                'offset' => $this->offset,
+                'children' => $this->getChildren(),
+            ],
+        );
     }
 }

@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace EugeneErg\Preparer\Types;
 
+use EugeneErg\Collections\MixedCollection;
 use EugeneErg\Preparer\Collections\FunctionCollection;
-use EugeneErg\Preparer\Collections\TypeCollection;
 use EugeneErg\Preparer\Functions\AbstractFunction;
 
 abstract class AbstractType implements TypeInterface
 {
     private readonly FunctionCollection $ancestors;
-    private readonly TypeCollection $results;
+    private readonly MixedCollection $results;
 
     public function __construct(?FunctionCollection $ancestors = null)
     {
-        $this->results = new TypeCollection([], false);
+        $this->results = new MixedCollection([], false);
         $this->ancestors = $ancestors ?? new FunctionCollection([]);
     }
 
@@ -31,23 +31,29 @@ abstract class AbstractType implements TypeInterface
 
     protected function call(AbstractFunction $function): AbstractType
     {
-        $function->context = $this;
+        $function->setContext($this);
 
-        foreach ($this->results as $result) {
-            if ($function->equals($result->getParent())) {
+        foreach ($this->results as [$parent, $result]) {
+            if ($function->equals($parent)) {
                 return $result;
             }
         }
 
-        return $this->results[] = $function();
+        $result = $function();
+        $this->results[] = [$function, $result];
+
+        return $result;
     }
 
     public function getChildren(): FunctionCollection
     {
-        return FunctionCollection::fromMap(
-            true,
-            fn (AbstractType $type): AbstractFunction => $type->getAncestors()->last(),
-            $this->results,
-        );
+        return FunctionCollection::fromMap(true, fn (array $data): AbstractFunction => $data[0], $this->results);
+    }
+
+    public function __debugInfo(): array
+    {
+        return [
+            'parent' =>  $this->getParent(),
+        ];
     }
 }

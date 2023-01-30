@@ -6,6 +6,7 @@ namespace EugeneErg\Preparer\ValueObjects;
 
 use EugeneErg\Preparer\Collections\BranchCollection;
 use EugeneErg\Preparer\Types\QueryTypeInterface;
+use JetBrains\PhpStorm\ArrayShape;
 
 final class Branch
 {
@@ -58,9 +59,25 @@ final class Branch
         $result->children = BranchCollection::fromMap(
             true,
             fn (QueryTypeInterface $source): Branch => self::createTree($source, $trees, $result),
-            $query->getChildren(),
+            $query->getSubQueries(),
         );
 
         return $result;
+    }
+
+    #[ArrayShape([
+        'level' => "int",
+        'parent' => Branch::class | null,
+        'query' => QueryTypeInterface::class,
+        'children' => BranchCollection::class,
+    ])]
+    public function __debugInfo(): array
+    {
+        return [
+            'level' => $this->level,
+            'parent' => $this->parent,
+            'query' => $this->query,
+            'children' => $this->children,
+        ];
     }
 }

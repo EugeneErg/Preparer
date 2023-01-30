@@ -17,6 +17,11 @@ abstract class AbstractFunction
         return static::RETURN_TYPE ?? get_class($this->context);
     }
 
+    public function setContext(AbstractType $context): void
+    {
+        $this->context = $context;
+    }
+
     public function __invoke(): AbstractType
     {
         $class = $this->getType();
