@@ -67,7 +67,6 @@ final class Branch
 
     #[ArrayShape([
         'level' => "int",
-        'parent' => Branch::class | null,
         'query' => QueryTypeInterface::class,
         'children' => BranchCollection::class,
     ])]
@@ -75,7 +74,6 @@ final class Branch
     {
         return [
             'level' => $this->level,
-            'parent' => $this->parent,
             'query' => $this->query,
             'children' => $this->children,
         ];

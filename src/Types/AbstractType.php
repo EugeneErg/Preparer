@@ -53,7 +53,6 @@ abstract class AbstractType implements TypeInterface
     public function __debugInfo(): array
     {
         return [
-            'parent' =>  $this->getParent(),
         ];
     }
 }

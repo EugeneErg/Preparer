@@ -11,6 +11,7 @@ use EugeneErg\Preparer\Collections\SelectCollection;
 use EugeneErg\Preparer\DataTransferObjects\Destination;
 use EugeneErg\Preparer\DataTransferObjects\Select;
 use EugeneErg\Preparer\Functions\AbstractFunction;
+use EugeneErg\Preparer\Queries\AbstractQuery;
 use EugeneErg\Preparer\Returning;
 use EugeneErg\Preparer\Types\AbstractType;
 use EugeneErg\Preparer\Types\FieldTypeInterface;
@@ -96,6 +97,8 @@ final class Required
         BranchCollection $structure,
         RequiredCollection $requires,
     ): BranchCollection {
+        //var_dump(func_get_args());die;
+
         /** Все источники, которые нужны для этой функции */
         $allSources = self::getAllSources(get_object_vars($method), $destination, $structure, $requires, $method)->unique();
         $paths = [];
@@ -118,7 +121,7 @@ final class Required
         $result = [];
 
         foreach ($values as $value) {
-            if ($value instanceof QueryTypeInterface && $value !== $destination->query) {
+            if ($value instanceof AbstractQuery && $value !== $destination->query) {
                 throw new LogicException('There are no aggregate functions across multiple queries.');
             }
 
@@ -255,5 +258,18 @@ final class Required
         }
 
         return $result->setImmutable();
+    }
+
+    public function __debugInfo(): array
+    {
+        return [
+            'target' => get_class($this->target),
+            'execution' => [
+                'class' => get_class($this->executionRange[0]->query),
+                'level' => $this->executionRange[0]->level,
+            ],
+            'used' => $this->used,
+            'destinations' => $this->destinations,
+        ];
     }
 }

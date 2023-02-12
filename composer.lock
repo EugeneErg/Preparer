@@ -4,15 +4,15 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "814fff8b356f62fe53c7d62e9b505c6d",
+    "content-hash": "7f5e70112c54b66df8edd4704158d9b1",
     "packages": [
         {
             "name": "eugeneerg/collections",
-            "version": "0.1.7",
+            "version": "0.1.9",
             "source": {
                 "type": "git",
                 "url": "git@github.com:EugeneErg/Collections.git",
-                "reference": "4de94bd31a9ad1ffd997e92d1d572d08b9a93ada"
+                "reference": "aa128654134e80f1d847672d49304595a37bf1cb"
             },
             "require": {
                 "php": ">=8.1"
@@ -27,7 +27,7 @@
                 "MIT"
             ],
             "description": "Typed collections",
-            "time": "2023-01-30T19:17:26+00:00"
+            "time": "2023-01-31T03:54:10+00:00"
         }
     ],
     "packages-dev": [
